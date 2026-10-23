@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Zasady pracy nad projektem sp9ak (dla ludzi i agentów AI). `CLAUDE.md` jest linkiem do tego pliku.
+Zasady pracy nad projektem sp9ak (dla ludzi i agentów AI). `CLAUDE.md` tylko importuje ten plik (`@AGENTS.md`), więc wszystkie zasady dopisuj tutaj.
 
 ## Workflow git
 
