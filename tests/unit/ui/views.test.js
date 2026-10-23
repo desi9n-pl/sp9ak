@@ -250,6 +250,23 @@ describe('CorrectedPane', () => {
             expect(pane.value).toBe('[druga wersja] ');
         });
 
+        it('flush renders a pending edit at once and only once', () => {
+            pane.show();
+            editor.setText('nowa wersja');
+            pane.flush();
+            expect(pane.value).toBe('[nowa wersja] ');
+            pane.field.value = 'ręcznie zmienione';
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('ręcznie zmienione');
+        });
+
+        it('flush without a pending edit does nothing', () => {
+            pane.show();
+            pane.append('tekst ');
+            pane.flush();
+            expect(pane.value).toBe('tekst ');
+        });
+
         it('stays out of the way while hidden or when the text is blank', () => {
             editor.setText('coś');
             vi.advanceTimersByTime(3000);
@@ -257,6 +274,29 @@ describe('CorrectedPane', () => {
             pane.show();
             editor.setText('   ');
             vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('');
+        });
+
+        it('empties the pane once the editor is emptied, and renders the same text again afterwards', () => {
+            pane.show();
+            editor.setText('tekst');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('[tekst] ');
+            editor.setText('');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('');
+            expect(pane.visible).toBe(true);
+            editor.setText('tekst');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('[tekst] ');
+        });
+
+        it('flush right after emptying the editor leaves the pane empty', () => {
+            pane.show();
+            editor.setText('tekst');
+            pane.flush();
+            editor.setText('');
+            pane.flush();
             expect(pane.value).toBe('');
         });
 
@@ -291,6 +331,15 @@ describe('CopyButton', () => {
         pane.append('Poprawiony. ');
         await copy.copy();
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Poprawiony. ');
+    });
+
+    it('copies an edit made within the refresh delay, not the stale correction', async () => {
+        pane.followEditor(editor, text => `[${text}]`);
+        pane.show();
+        pane.append('[stara wersja] ');
+        editor.setText('nowa wersja');
+        await copy.copy();
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith('[nowa wersja] ');
     });
 
     it('copies the original otherwise', async () => {

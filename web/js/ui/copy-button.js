@@ -13,6 +13,7 @@ export class CopyButton {
     }
 
     async copy() {
+        this.corrected.flush();
         const field = this.corrected.value ? this.corrected.field : this.editor.el;
         if (!field.value) return;
         try {
