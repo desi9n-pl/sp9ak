@@ -18,6 +18,17 @@ Zasady pracy nad projektem sp9ak (dla ludzi i agentów AI). `CLAUDE.md` tylko im
 
 Pełny opis procesu dla współautorów: [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Wydania
+
+Najpierw cała praca trafia do `dev`, dopiero z `dev` powstaje stabilne wydanie.
+
+1. Gotowe zmiany scalamy do `dev` pull requestami (jak wyżej). Wszystkie otwarte PR-y wchodzą do `dev`, zanim ruszy wydanie.
+2. Wydanie wycinamy z `dev` jako `release/YYYY-MM-DD` (data wycięcia; drugie tego samego dnia: `release/YYYY-MM-DD.2`).
+3. Na gałęzi release nie dodajemy nowych funkcji, tylko poprawki stabilizujące, przez PR-y do niej. Poprawkę z release wracamy też do `dev`.
+4. Kandydata sprawdzamy pełnym zestawem: `npm run lint`, `npm test`, `npm run test:py`, `npm run test:e2e`, `npm run test:monkey` oraz `packaging/build-deb.sh`. Wersje próbne oznaczamy tagiem `vYYYY.MM.DD-rc.N` (pakiet `.deb`: `YYYY.MM.DD~rcN`).
+5. Gdy wszystko przechodzi: tag `vYYYY.MM.DD`, scalenie `release/YYYY-MM-DD` do `main` (`--no-ff`) i z powrotem do `dev`. `main` zawsze wskazuje ostatnie stabilne wydanie.
+6. Tak jak przy PR-ach: nie wypychamy, nie tagujemy i nie scalamy bez wyraźnej zgody właściciela.
+
 ## Commity
 
 - Wiadomości po angielsku, tryb rozkazujący, krótki wiersz tytułowy (np. `Add .deb package ...`).
