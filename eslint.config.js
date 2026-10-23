@@ -17,7 +17,7 @@ export default [
     { files: ['web/**/*.js'], languageOptions: { globals: globals.browser } },
     { files: ['tests/unit/**/*.js'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
     {
-        files: ['tests/e2e/**/*.mjs', 'vitest.config.js', 'eslint.config.js'],
+        files: ['tests/e2e/**/*.mjs', 'tests/quality/**/*.mjs', 'vitest.config.js', 'eslint.config.js'],
         languageOptions: { globals: { ...globals.node, ...globals.browser } },
     },
 ];
