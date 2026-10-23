@@ -272,6 +272,16 @@ Serwer w testach zapisuje historię do pliku tymczasowego (`SP9AK_SESSIONS`), ni
 
 Zależności Pythona (`gi`, `python-xlib`) są potrzebne tylko do ikony w trayu i skrótu globalnego. Pozostały kod używa wyłącznie biblioteki standardowej.
 
+### Gałęzie i wydania
+
+Cała praca trafia pull requestami do `dev`. Stabilne wydanie powstaje dopiero z `dev`:
+
+```
+feature/*, fix/*, docs/*  →  dev  →  release/YYYY-MM-DD  →  main (tag vYYYY.MM.DD)
+```
+
+Na `release/YYYY-MM-DD` są tylko poprawki stabilizujące i pełne testy (`lint`, `test`, `test:py`, `test:e2e`, `test:monkey`, `packaging/build-deb.sh`). Wersje próbne mają tag `vYYYY.MM.DD-rc.N`. Szczegóły dla współautorów i agentów AI: [AGENTS.md](AGENTS.md#wydania).
+
 ---
 
 ## Instalacja w systemie (pakiet .deb)
