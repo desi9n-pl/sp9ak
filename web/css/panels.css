@@ -54,7 +54,7 @@
     font-weight: 500;
 }
 .t-btn:hover { background: var(--btn-hover); }
-.t-btn.active { border-color: var(--accent); color: var(--accent); }
+.t-btn.active { border-color: var(--accent); color: var(--accent-text); }
 .swatch { width: 11px; height: 11px; flex-shrink: 0; border-radius: 50%; }
 .sw-light { background: #f0f0f0; border: 1.5px solid #d1d5db; }
 .sw-sepia { background: #e8d5b0; border: 1.5px solid #c8baa8; }
@@ -120,7 +120,7 @@
 }
 .sess-item:hover { border-color: var(--accent); }
 .sess-body { flex: 1; min-width: 0; }
-.sess-time { margin-bottom: 2px; font-size: 10px; color: var(--faint); }
+.sess-time { margin-bottom: 2px; font-size: 12px; color: var(--faint); }
 .sess-preview {
     overflow: hidden;
     font-size: 12px;
@@ -199,7 +199,7 @@
     background: var(--bg);
     color: var(--muted);
     font-family: Consolas, Menlo, Monaco, monospace;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-all;
