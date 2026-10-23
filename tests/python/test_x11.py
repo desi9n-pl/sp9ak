@@ -181,6 +181,27 @@ class WindowCommandsTest(unittest.TestCase):
             x11.close_window()
         self.assertEqual([c for c in self.calls if c[:2] == ('wmctrl', '-i')], [])
 
+    def test_window_state_is_unsupported_without_a_window(self):
+        with mock.patch.object(x11, 'run', self.recording_run({})):
+            self.assertEqual(x11.window_state(), {'supported': False, 'alwaysOnTop': False})
+
+    def test_window_state_reads_the_above_flag(self):
+        for xprop, expected in (('_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE', True), ('_NET_WM_STATE(ATOM) =', False)):
+            with mock.patch.object(x11, 'run', self.recording_run({'wmctrl': WMCTRL_LIST, 'xprop': xprop})):
+                self.assertEqual(x11.window_state(), {'supported': True, 'alwaysOnTop': expected})
+
+    def test_set_always_on_top_adds_or_removes_the_flag(self):
+        with mock.patch.object(x11, 'run', self.recording_run({'wmctrl': WMCTRL_LIST})):
+            x11.set_always_on_top(True)
+            x11.set_always_on_top(False)
+        self.assertIn(('wmctrl', '-i', '-r', '0x3a00007', '-b', 'add,above'), self.calls)
+        self.assertIn(('wmctrl', '-i', '-r', '0x3a00007', '-b', 'remove,above'), self.calls)
+
+    def test_set_always_on_top_without_a_window_changes_nothing(self):
+        with mock.patch.object(x11, 'run', self.recording_run({})):
+            x11.set_always_on_top(True)
+        self.assertEqual([c for c in self.calls if c[:2] == ('wmctrl', '-i')], [])
+
 
 if __name__ == '__main__':
     unittest.main()

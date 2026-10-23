@@ -96,3 +96,22 @@
 #copyBtn.ok { background: #14532d; color: #86efac; border-color: #166534; }
 #dictBtn.on { background: #dc2626; }
 #dictBtn.on:not(:disabled):hover { background: #b91c1c; }
+
+/* Strip of tiny window buttons above the editor (pin on top, more to come) */
+.toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-bottom: -6px;
+}
+.toolbar:not(:has(button:not([hidden]))) { display: none; }
+.btn-tiny {
+    gap: 0;
+    padding: 3px 5px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+}
+.btn-tiny:hover { background: var(--btn-hover); color: var(--accent); }
+.btn-tiny.active { border-color: var(--accent); color: var(--accent); }

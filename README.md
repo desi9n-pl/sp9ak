@@ -297,6 +297,11 @@ pokazuje okno sp9ak i włącza dyktowanie (jeśli już trwa, nic nie zmienia). *
 Inne skróty: `SP9AK_HOTKEY="ctrl+alt+d" SP9AK_HOTKEY_STOP="ctrl+alt+s" ./sp9ak.sh`. Jeśli skrót jest zajęty przez inną aplikację, tray działa dalej bez skrótu.
 Na Waylandzie globalne skróty nie są dostępne dla zwykłych programów – ustaw wtedy skrót w ustawieniach systemu.
 
+## Pasek przycisków okna (X11)
+
+Nad edytorem jest maleńki pasek z przyciskami okna. Pierwszy z nich, pinezka, przypina okno na wierzchu (Always On Top)
+i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylandzie, przycisk jest ukryty.
+
 ## Praca bez internetu / przy słabym łączu
 
 - Aplikacja, interpunkcja (regex), historia i lokalny Gemini Nano działają bez internetu.
