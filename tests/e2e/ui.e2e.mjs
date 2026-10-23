@@ -227,6 +227,7 @@ try {
         await page.click('#copyBtn');
         assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'tylko oryginał');
         assert.equal(await page.textContent('#copyLabel'), '✓ Skopiowano');
+        await page.fill('#output', '');
         await dictate(page, 'nie przyjdę bo jestem chory');
         await page.click('#copyBtn');
         assert.equal((await page.evaluate(() => navigator.clipboard.readText())).trim(), 'Nie przyjdę, bo jestem chory.');
