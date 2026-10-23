@@ -82,7 +82,6 @@
     background: var(--btn-bg);
     color: var(--text);
     font-size: 12px;
-    outline: none;
 }
 .ext-select { flex-shrink: 0; cursor: pointer; }
 .ext-input { flex: 1; min-width: 50px; }

@@ -41,7 +41,6 @@ textarea {
     font-size: 15px;
     line-height: 1.65;
     resize: none;
-    outline: none;
     transition: border-color 0.2s, background 0.25s, color 0.25s;
 }
 textarea:focus { border-color: var(--accent); }
