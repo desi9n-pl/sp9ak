@@ -74,7 +74,7 @@ textarea::placeholder { color: var(--faint); }
 }
 .big-dict:hover { background: var(--accent-h); }
 .big-dict:active { transform: scale(0.97); }
-.big-dict kbd { font: inherit; font-size: 12px; font-weight: 500; }
+.big-dict kbd { font: inherit; font-size: 13px; font-weight: 500; }
 
 .small-type {
     padding: 6px 16px;
