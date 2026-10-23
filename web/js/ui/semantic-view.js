@@ -21,6 +21,12 @@ export class SemanticView {
         byId('semanticAcceptAllBtn').addEventListener('click', () => this.#acceptAll());
         byId('semanticApplyBtn').addEventListener('click', () => onApply(buildSemanticText(this.#segments)));
         this.content.addEventListener('click', event => this.#onContentClick(event));
+        this.content.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            if (!event.target.matches('[role="button"]')) return;
+            event.preventDefault();
+            event.target.click();
+        });
     }
 
     async #onButton() {
@@ -98,7 +104,16 @@ export class SemanticView {
         span.className = className;
         span.dataset.idx = index;
         span.textContent = text;
+        if (className === 'suspect-sug') this.#makeButton(span, false);
         return span;
+    }
+
+    /** Spans stay inline in the running text, so they act as buttons through ARIA instead of being <button>s. */
+    #makeButton(span, pressed) {
+        span.setAttribute('role', 'button');
+        span.tabIndex = 0;
+        span.setAttribute('aria-label', `Sugestia: ${span.textContent}`);
+        span.setAttribute('aria-pressed', String(pressed));
     }
 
     #onContentClick(event) {
@@ -115,10 +130,27 @@ export class SemanticView {
         this.content.querySelectorAll('.suspect-sug:not(.accepted)').forEach(span => this.#setAccepted(span, true));
     }
 
+    #setRestorable(original, restorable) {
+        if (restorable) {
+            original.setAttribute('role', 'button');
+            original.tabIndex = 0;
+            original.setAttribute('aria-label', `Przywróć: ${original.textContent}`);
+        } else {
+            original.removeAttribute('role');
+            original.removeAttribute('tabindex');
+            original.removeAttribute('aria-label');
+        }
+    }
+
     /** Updates the segment and the highlight of both spans in its group. */
     #setAccepted(span, accepted) {
         this.#segments[span.dataset.idx].accepted = accepted;
         span.parentElement.querySelectorAll('.suspect-orig, .suspect-sug')
-            .forEach(el => el.classList.toggle('accepted', accepted));
+            .forEach(el => {
+                el.classList.toggle('accepted', accepted);
+                if (el.classList.contains('suspect-sug')) el.setAttribute('aria-pressed', String(accepted));
+                // the struck-through original is the way back to the first version, only while accepted
+                if (el.classList.contains('suspect-orig')) this.#setRestorable(el, accepted);
+            });
     }
 }

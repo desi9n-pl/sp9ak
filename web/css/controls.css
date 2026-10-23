@@ -63,6 +63,7 @@
     color: var(--btn-text);
     font-size: 13px;
     font-weight: 600;
+    line-height: normal;
     letter-spacing: 0.03em;
     cursor: pointer;
     user-select: none;
