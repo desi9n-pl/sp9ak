@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="sepia">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sp9ak</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script>
+        // Applied before the first paint so the page does not flash the default theme.
+        try { document.documentElement.dataset.theme = localStorage.getItem('sp9ak-theme') || 'sepia'; } catch {}
+    </script>
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/controls.css">
+    <link rel="stylesheet" href="css/panels.css">
+    <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+<div class="ta-wrap">
+    <div class="ta-section">
+        <span class="ta-label">Oryginał</span>
+        <div class="ta-inner">
+            <textarea id="output" placeholder="Kliknij „Dyktuj” i zacznij mówić…"></textarea>
+            <div class="empty-state" id="emptyState">
+                <button class="big-dict" id="bigDictBtn">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+                    <span>Dyktuj <kbd>Ctrl+D</kbd></span>
+                </button>
+                <button class="small-type" id="typeBtn">Zacznij pisać</button>
+            </div>
+            <div class="typing-dots" id="dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+    <div class="ta-section" id="correctedSection" hidden>
+        <span class="ta-label">Tekst po korekcie AI</span>
+        <div class="ta-inner">
+            <textarea id="corrected" placeholder="Poprawiony tekst pojawi się tutaj…" spellcheck="false" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<canvas id="waveform"></canvas>
+
+<div class="panel themes" id="themesPanel">
+    <div class="themes-row">
+        <span class="themes-label">Motyw:</span>
+        <button class="t-btn" data-t="light"><span class="swatch sw-light"></span>Jasny</button>
+        <button class="t-btn" data-t="sepia"><span class="swatch sw-sepia"></span>Sepia</button>
+        <button class="t-btn" data-t="dark" ><span class="swatch sw-dark" ></span>Ciemny</button>
+    </div>
+    <div class="themes-row">
+        <span class="themes-label">Gemini Nano:</span>
+        <div class="ai-status-dot off" id="aiStatusDot"></div>
+        <span class="ai-status-text" id="aiStatusText">Sprawdzam…</span>
+        <button class="btn-small" id="installGeminiBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Jak zainstalować
+        </button>
+    </div>
+    <div class="themes-row">
+        <span class="themes-label">Diagnostyka:</span>
+        <label class="ext-check"><input type="checkbox" id="logsToggle"> Pokaż przycisk logów diagnostycznych</label>
+    </div>
+    <div class="themes-row">
+        <span class="themes-label">Zewn. AI:</span>
+        <select class="ext-select" id="extProviderSelect">
+            <option value="">— brak —</option>
+            <option value="claude">Claude</option>
+            <option value="openai">OpenAI</option>
+        </select>
+        <input type="text"     class="ext-input" id="extModelInput" placeholder="model" hidden>
+        <input type="password" class="ext-input" id="extKeyInput"   placeholder="klucz API" hidden>
+        <button class="btn-small" id="extTestBtn" hidden>Testuj</button>
+        <button class="btn-small" id="extSaveBtn" hidden>Zapisz</button>
+        <button class="btn-small" id="extClearBtn" hidden title="Usuń zapisany klucz">Usuń</button>
+    </div>
+    <div class="themes-row" id="extStatusRow" hidden>
+        <span class="themes-label"></span>
+        <div class="ai-status-dot off" id="extStatusDot"></div>
+        <span class="ai-status-text" id="extStatusText"></span>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="installModal">
+    <div class="modal">
+        <div class="modal-hdr">
+            <span class="modal-title">Jak zainstalować Gemini Nano (Chrome Beta 149)</span>
+            <button class="btn-bare modal-close" id="installModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <h2>Wymagania</h2>
+            <ul>
+                <li><strong>Chrome Beta 149</strong> lub nowszy (Linux 64-bit)</li>
+                <li>Około <strong>4 GB</strong> wolnego miejsca na dysku</li>
+                <li>Połączenie z internetem (tylko podczas pierwszego pobierania)</li>
+            </ul>
+            <div class="modal-warn">
+                Chrome Stable 148 nie obsługuje już Gemini Nano przez tę aplikację. Wymagany jest <strong>Chrome Beta 149+</strong>.
+            </div>
+
+            <hr class="modal-sep">
+
+            <h3><span class="step-num">1</span> Zainstaluj Chrome Beta 149</h3>
+            <ol>
+                <li>Pobierz Chrome Beta ze strony:<br><code>https://www.google.com/chrome/beta/</code></li>
+                <li>Zainstaluj – Chrome Beta i Chrome Stable mogą działać równocześnie</li>
+                <li>Uruchamiaj aplikację wyłącznie w Chrome Beta</li>
+            </ol>
+
+            <h3><span class="step-num">2</span> Włącz Prompt API</h3>
+            <ol>
+                <li>W Chrome Beta otwórz nową kartę i wejdź na:<br><code>chrome://flags/#prompt-api-for-gemini-nano</code></li>
+                <li>Zmień wartość na <strong>Enabled</strong></li>
+            </ol>
+
+            <h3><span class="step-num">3</span> Włącz pobieranie modelu</h3>
+            <ol>
+                <li>Wejdź na:<br><code>chrome://flags/#optimization-guide-on-device-model</code></li>
+                <li>Zmień wartość na <strong>Enabled BypassPerfRequirement</strong></li>
+            </ol>
+            <div class="modal-warn">
+                Wybierz <strong>BypassPerfRequirement</strong>, nie zwykłe „Enabled” – omija sprawdzanie wymagań sprzętowych, niezbędne na Linuksie.
+            </div>
+            <ol start="3">
+                <li>Kliknij <strong>Uruchom ponownie</strong></li>
+                <li>Dla pewności pełnego zamknięcia uruchom w terminalu:<br><code>killall -9 google-chrome-beta</code><br>…a następnie otwórz Chrome Beta ponownie</li>
+            </ol>
+
+            <h3><span class="step-num">4</span> Pobierz model przez DevTools</h3>
+            <p>Model nie pobiera się automatycznie – musisz go wyzwolić ręcznie przez konsolę DevTools.</p>
+            <ol>
+                <li>Na dowolnej stronie otwórz DevTools: <strong>F12</strong> → zakładka <strong>Console</strong></li>
+                <li>Sprawdź dostępność modelu:<br><code>await LanguageModel.availability()</code><br>Oczekiwana odpowiedź: <strong>'downloadable'</strong></li>
+                <li>Uruchom pobieranie (~3–4 GB):<br>
+<pre class="code-block">const session = await LanguageModel.create({
+  monitor(m) {
+m.addEventListener('downloadprogress', e => {
+  console.log(e.loaded);
+});
+  }
+});</pre>
+                </li>
+                <li>W konsoli będą pojawiać się liczby – to bajty już pobranych danych. Poczekaj, aż przestaną rosnąć (kilka–kilkadziesiąt minut)</li>
+            </ol>
+            <div class="modal-note">
+                Nie zamykaj DevTools ani karty podczas pobierania – przerwanie wymaga zaczęcia od nowa.
+            </div>
+
+            <h3><span class="step-num">5</span> Przetestuj model</h3>
+            <p>Po zakończeniu pobierania wpisz w konsoli:</p>
+<pre class="code-block">const s = await LanguageModel.create()
+await s.prompt("Napisz jedno zdanie po polsku")</pre>
+            <p>Jeśli model odpowie po polsku – wszystko działa.</p>
+
+            <h3><span class="step-num">6</span> Odśwież aplikację</h3>
+            <p>Odśwież tę stronę w Chrome Beta. Wskaźnik <strong>✦</strong> zmieni kolor na zielony z napisem <strong>AI</strong> – Gemini Nano jest aktywny i działa całkowicie offline.</p>
+
+            <hr class="modal-sep">
+
+            <h2>Rozwiązywanie problemów</h2>
+
+            <h3><code>LanguageModel.availability()</code> zwraca <code>'unavailable'</code></h3>
+            <p>Sprawdź czy używasz Chrome Beta 149+ i czy obie flagi z kroków 2–3 są ustawione. Po zmianie flag zawsze wymagany jest pełny restart.</p>
+
+            <h3>Pobieranie się zatrzymało / brak postępu w konsoli</h3>
+            <p>Zamknij Chrome Beta, uruchom w terminalu:<br><code>killall -9 google-chrome-beta</code><br>Otwórz ponownie i powtórz krok 4 od początku.</p>
+
+            <h3>Model pobrany, ale ✦ nadal pokazuje ⚠</h3>
+            <p>Wykonaj pełny restart Chrome Beta:</p>
+            <p><code>killall -9 google-chrome-beta</code></p>
+            <p>Otwórz Chrome Beta ponownie i odśwież tę stronę.</p>
+
+            <h3>Używasz osobnego profilu Chrome</h3>
+            <p>Flagi <code>chrome://flags</code> są ustawiane <strong>osobno dla każdego profilu</strong>. Upewnij się, że flagi z kroków 2–3 są włączone w tym samym profilu, w którym używasz tej aplikacji.</p>
+        </div>
+    </div>
+</div>
+
+<div class="panel history-panel" id="historyPanel">
+    <div class="panel-hdr">
+        <span class="panel-title">Historia sesji</span>
+        <button class="btn-ghost" id="clearAllBtn">Wyczyść wszystkie</button>
+    </div>
+    <div id="historyList" class="history-list"></div>
+    <div id="historyEmpty" class="panel-empty">Brak zapisanych sesji</div>
+</div>
+
+<div class="panel logs-panel" id="logsPanel">
+    <div class="panel-hdr">
+        <span class="panel-title">Logi diagnostyczne</span>
+        <button class="btn-ghost" id="copyLogsBtn">Kopiuj logi</button>
+        <button class="btn-ghost" id="clearLogsBtn">Wyczyść</button>
+    </div>
+    <div id="logsList" class="logs-list">
+        <div class="panel-empty" id="logsEmpty">Brak wpisów</div>
+    </div>
+</div>
+
+<div class="panel semantic-panel" id="semanticPanel">
+    <div class="panel-hdr">
+        <span class="panel-title">Korekta semantyczna — kliknij zieloną sugestię, żeby ją zaakceptować</span>
+        <button class="btn-small" id="semanticAcceptAllBtn">Zaakceptuj wszystkie</button>
+        <button class="btn-small" id="semanticApplyBtn">Zastosuj</button>
+        <button class="btn-small" id="semanticCloseBtn">✕</button>
+    </div>
+    <div id="semanticContent" class="semantic-content"></div>
+    <div id="semanticEmpty"   class="semantic-empty" hidden>Brak podejrzanych słów ✓</div>
+</div>
+
+<div class="bar">
+    <div class="bar-top">
+        <div class="status">
+            <div class="dot" id="dot"></div>
+            <span class="status-text" id="msg">Gotowy</span>
+            <span class="kbd-hint" id="kbdHint">Ctrl+D</span>
+        </div>
+        <span id="punctToggle" class="lang-chip" title="Interpunkcja">✦</span>
+        <span id="langToggle"  class="lang-chip" title="Przełącz język rozpoznawania (PL / EN)">PL</span>
+        <button class="btn-icon" id="historyBtn" title="Historia sesji">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8"    y1="6"  x2="21"   y2="6"/>
+                <line x1="8"    y1="12" x2="21"   y2="12"/>
+                <line x1="8"    y1="18" x2="21"   y2="18"/>
+                <line x1="3"    y1="6"  x2="3.01" y2="6"/>
+                <line x1="3"    y1="12" x2="3.01" y2="12"/>
+                <line x1="3"    y1="18" x2="3.01" y2="18"/>
+            </svg>
+        </button>
+        <button class="btn-icon" id="settingsBtn" title="Motyw i ustawienia">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="bar-bottom">
+        <button class="btn-icon" id="logsBtn" title="Logi diagnostyczne" hidden>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="12" y1="19" x2="20" y2="19"/>
+            </svg>
+        </button>
+        <button class="btn-icon" id="semanticBtn" title="Sprawdź semantyczną poprawność tekstu (Gemini Nano)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18M3 12h12M3 18h8"/>
+                <path d="m16 17 2 2 4-4"/>
+            </svg>
+        </button>
+        <button class="btn-secondary" id="newNoteBtn" title="Nowa notatka (Ctrl+N) – zapisuje bieżącą">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="11" x2="12" y2="17"/>
+                <line x1="9"  y1="14" x2="15" y2="14"/>
+            </svg>
+            <span class="btn-label"><span>Nowy</span><span class="btn-kbd">Ctrl+N</span></span>
+        </button>
+        <button class="btn-secondary" id="copyBtn" title="Kopiuj (Ctrl+C bez zaznaczenia kopiuje całość)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span class="btn-label"><span id="copyLabel">Kopiuj</span><span class="btn-kbd">Ctrl+C</span></span>
+        </button>
+        <button class="btn-primary" id="dictBtn" title="Dyktuj / Pauza (Ctrl+D)">
+            <svg id="micIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                <line x1="12" y1="18" x2="12" y2="22"/>
+                <line x1="8"  y1="22" x2="16" y2="22"/>
+            </svg>
+            <svg id="pauseIcon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" hidden>
+                <rect x="6"  y="4" width="4" height="16" rx="1"/>
+                <rect x="14" y="4" width="4" height="16" rx="1"/>
+            </svg>
+            <span class="btn-label"><span id="dictLabel">Dyktuj</span><span class="btn-kbd">Ctrl+D</span></span>
+        </button>
+    </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Test AI — Gemini Nano</title>
+<style>
+  :root { --bg: #1a1a1a; --card: #252525; --border: #333; --text: #e8e8e8; --muted: #888; --pass: #22c55e; --fail: #ef4444; --warn: #f59e0b; --accent: #60a5fa; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 'Segoe UI', system-ui, sans-serif; padding: 24px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 18px; margin-bottom: 6px; }
+  #status { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  #summary { display: flex; gap: 16px; margin-bottom: 24px; font-size: 13px; }
+  .badge { padding: 4px 10px; border-radius: 12px; font-weight: 600; }
+  .badge.pass { background: #14532d; color: var(--pass); }
+  .badge.fail { background: #450a0a; color: var(--fail); }
+  .badge.skip { background: #292524; color: var(--warn); }
+  #controls { display: flex; gap: 10px; margin-bottom: 20px; }
+  button { padding: 7px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-size: 13px; }
+  button:hover { background: #303030; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  #results { display: flex; flex-direction: column; gap: 10px; }
+  .row { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .row.pass { border-left: 3px solid var(--pass); }
+  .row.fail { border-left: 3px solid var(--fail); }
+  .row.running { border-left: 3px solid var(--warn); }
+  .row.pending { border-left: 3px solid var(--border); opacity: 0.5; }
+  .row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .row-num { color: var(--muted); font-size: 12px; min-width: 28px; }
+  .row-icon { font-size: 15px; }
+  .row-original { font-size: 12px; color: var(--muted); font-style: italic; }
+  .row-expected, .row-actual { font-size: 13px; margin-top: 4px; }
+  .row-expected span, .row-actual span { color: var(--muted); font-size: 11px; margin-right: 6px; text-transform: uppercase; }
+  .diff-char { background: #7f1d1d; color: #fca5a5; border-radius: 2px; }
+  .diff-char.pass { background: #14532d; color: #86efac; }
+  #log { margin-top: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-family: monospace; font-size: 11px; color: var(--muted); max-height: 200px; overflow-y: auto; }
+  #filter { display: flex; gap: 8px; margin-bottom: 12px; }
+  .filter-btn { font-size: 12px; padding: 3px 10px; }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+<h1>Test AI — Gemini Nano</h1>
+<div id="status">Oczekiwanie na inicjalizację…</div>
+
+<div id="controls">
+  <button id="runBtn" disabled>▶ Uruchom testy</button>
+  <button id="stopBtn" disabled>■ Stop</button>
+</div>
+
+<div id="filter">
+  <button class="filter-btn active" data-filter="all">Wszystkie</button>
+  <button class="filter-btn" data-filter="fail">Tylko błędy</button>
+  <button class="filter-btn" data-filter="pass">Tylko zaliczone</button>
+</div>
+
+<div id="summary"></div>
+<div id="results"></div>
+<div id="log"></div>
+
+<script type="module">
+import { TEST_CASES } from './cases.js';
+
+const AI_SYSTEM_PROMPT =
+    'Jesteś narzędziem do korekty tekstu podyktowanego po polsku przez system rozpoznawania mowy (STT). ' +
+    'Każde wywołanie jest niezależne – nie pamiętasz poprzednich tekstów.\n\n' +
+    'Otrzymujesz surowy tekst STT: bez interpunkcji, możliwy z błędami rozpoznawania ' +
+    '(mylone słowa, homofony, wyrazy zniekształcone lub nie pasujące do kontekstu zdania).\n\n' +
+    'Wykonaj TYLKO te operacje:\n' +
+    '1. Popraw błędy STT: zamień wyrazy wyraźnie nie pasujące do kontekstu na właściwe ' +
+    '(np. "do widzenie" → "do widzenia", "kupiłem bóty" → "kupiłem buty" jeśli nie pasuje). ' +
+    'Nie zmieniaj słów, które mogą być poprawne.\n' +
+    '2. Dodaj interpunkcję: kropki kończące zdania, przecinki przed spójnikami podrzędnymi ' +
+    '(że, który, gdy, bo, ponieważ, gdyż, choć, jeśli, aby, żeby, gdzie, skoro, zanim, dopóki), ' +
+    'przecinki między zdaniami współrzędnymi (przed ale, lecz, jednak, natomiast), ' +
+    'przecinki w wyliczeniach, pytajniki i wykrzykniki gdzie stosowne.\n' +
+    '3. Wielką literą pisz pierwsze słowo każdego zdania i nazwy własne.\n' +
+    '4. Nie zmieniaj treści, stylu ani kolejności słów poza wymienionymi poprawkami.\n\n' +
+    'Zwróć WYŁĄCZNIE poprawiony tekst. Żadnych komentarzy, objaśnień, cudzysłowów ani formatowania.';
+
+let lmAPI = null;
+let stopRequested = false;
+let currentFilter = 'all';
+let results = [];
+
+const statusEl  = document.getElementById('status');
+const runBtn    = document.getElementById('runBtn');
+const stopBtn   = document.getElementById('stopBtn');
+const summaryEl = document.getElementById('summary');
+const resultsEl = document.getElementById('results');
+const logEl     = document.getElementById('log');
+
+function log(msg) {
+    const line = document.createElement('div');
+    line.textContent = new Date().toLocaleTimeString('pl') + '  ' + msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+function normalize(s) {
+    return (s ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function diffChars(a, b) {
+    // Prosty diff na poziomie znaków — podświetla różne fragmenty
+    const out = document.createElement('span');
+    let i = 0, j = 0;
+    while (i < a.length || j < b.length) {
+        if (i < a.length && j < b.length && a[i] === b[j]) {
+            out.appendChild(document.createTextNode(a[i]));
+            i++; j++;
+        } else {
+            // znajdź najbliższe wspólne miejsce
+            let bestI = -1, bestJ = -1, bestD = Infinity;
+            for (let di = 0; di <= Math.min(8, a.length - i); di++) {
+                for (let dj = 0; dj <= Math.min(8, b.length - j); dj++) {
+                    if (di + dj > 0 && di + dj < bestD && i + di < a.length && j + dj < b.length && a[i + di] === b[j + dj]) {
+                        bestD = di + dj; bestI = di; bestJ = dj;
+                    }
+                }
+            }
+            if (bestI === -1) { bestI = a.length - i; bestJ = b.length - j; }
+            if (bestI > 0) {
+                const span = document.createElement('span');
+                span.className = 'diff-char';
+                span.textContent = a.slice(i, i + bestI);
+                out.appendChild(span);
+                i += bestI;
+            }
+            if (bestJ > 0) {
+                const span = document.createElement('span');
+                span.className = 'diff-char pass';
+                span.textContent = b.slice(j, j + bestJ);
+                out.appendChild(span);
+                j += bestJ;
+            }
+        }
+    }
+    return out;
+}
+
+function renderRow(idx, tc, state, actual) {
+    const pass = state === 'pass';
+    const running = state === 'running';
+    const pending = state === 'pending';
+    const norm_expected = normalize(tc.corrected);
+    const norm_actual   = actual ? normalize(actual) : '';
+    const match = norm_actual === norm_expected;
+
+    const row = document.createElement('div');
+    row.className = 'row ' + (pending ? 'pending' : running ? 'running' : match ? 'pass' : 'fail');
+    row.dataset.idx = idx;
+    row.dataset.state = pending ? 'pending' : running ? 'running' : match ? 'pass' : 'fail';
+
+    const icon = pending ? '○' : running ? '⟳' : match ? '✓' : '✗';
+
+    row.innerHTML = `
+      <div class="row-header">
+        <span class="row-num">#${idx + 1}</span>
+        <span class="row-icon">${icon}</span>
+        <span class="row-original">${tc.original}</span>
+      </div>`;
+
+    if (!pending && !running) {
+        const expLine = document.createElement('div');
+        expLine.className = 'row-expected';
+        expLine.innerHTML = '<span>Oczekiwano</span>';
+        expLine.appendChild(document.createTextNode(norm_expected));
+        row.appendChild(expLine);
+
+        if (!match && actual) {
+            const actLine = document.createElement('div');
+            actLine.className = 'row-actual';
+            actLine.innerHTML = '<span>AI zwróciło</span>';
+            actLine.appendChild(diffChars(norm_expected, norm_actual));
+            row.appendChild(actLine);
+        }
+    }
+
+    return row;
+}
+
+function refreshResults() {
+    resultsEl.innerHTML = '';
+    let passed = 0, failed = 0, pending = 0;
+    results.forEach((r, idx) => {
+        const visible =
+            currentFilter === 'all' ||
+            (currentFilter === 'pass' && r.state === 'pass') ||
+            (currentFilter === 'fail' && r.state === 'fail');
+
+        const row = renderRow(idx, TEST_CASES[idx], r.state, r.actual);
+        if (currentFilter !== 'all' && !visible) return;
+        resultsEl.appendChild(row);
+
+        if (r.state === 'pass')  passed++;
+        else if (r.state === 'fail') failed++;
+        else pending++;
+    });
+    summaryEl.innerHTML = `
+      <span class="badge pass">✓ ${passed} zaliczonych</span>
+      <span class="badge fail">✗ ${failed} błędów</span>
+      ${pending ? `<span class="badge skip">○ ${pending} oczekuje</span>` : ''}
+    `;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        refreshResults();
+    });
+});
+
+async function initAI() {
+    const lm = window.ai?.languageModel ?? window.LanguageModel;
+    if (!lm) {
+        statusEl.textContent = '✗ Brak Prompt API — otwórz tę stronę przez sp9ak.sh w Chrome Beta z włączoną flagą PromptAPIForGeminiNano';
+        log('Brak window.ai.languageModel ani window.LanguageModel');
+        return;
+    }
+
+    log('Sprawdzam dostępność modelu…');
+    const avail = await lm.availability();
+    const availStr = typeof avail === 'string' ? avail : (avail?.available ?? 'unknown');
+    log(`availability() = "${availStr}"`);
+
+    if (availStr === 'no' || availStr === 'unavailable') {
+        statusEl.textContent = `✗ Model niedostępny (${availStr}) — sprawdź chrome://on-device-internals`;
+        return;
+    }
+    if (availStr === 'downloadable') {
+        statusEl.textContent = '⬇ Model do pobrania — uruchom aplikację główną i kliknij ✦ aby pobrać';
+        return;
+    }
+
+    log('Testuję lm.create()…');
+    try {
+        const testSession = await lm.create();
+        await testSession.prompt('OK');
+        testSession.destroy?.();
+        lmAPI = lm;
+        log('lm.create() działa');
+        statusEl.textContent = `✓ Gemini Nano gotowy (avail="${availStr}") — ${TEST_CASES.length} przypadków testowych`;
+        runBtn.disabled = false;
+    } catch (err) {
+        statusEl.textContent = `✗ Błąd tworzenia sesji: ${err.message}`;
+        log(`lm.create() error: ${err.name}: ${err.message}`);
+    }
+}
+
+runBtn.addEventListener('click', async () => {
+    runBtn.disabled = true;
+    stopBtn.disabled = false;
+    stopRequested = false;
+
+    // Inicjalizuj wyniki
+    results = TEST_CASES.map(() => ({ state: 'pending', actual: null }));
+    refreshResults();
+
+    for (let i = 0; i < TEST_CASES.length; i++) {
+        if (stopRequested) {
+            log('Zatrzymano przez użytkownika');
+            break;
+        }
+
+        const tc = TEST_CASES[i];
+        results[i].state = 'running';
+        refreshResults();
+        log(`Test #${i + 1}: "${tc.original}"`);
+
+        let session = null;
+        try {
+            // Świeża sesja na każdy test — brak kontekstu poprzednich zapytań
+            session = await lmAPI.create();
+            const output = await session.prompt(AI_SYSTEM_PROMPT + '\n\nTekst:\n' + tc.original);
+            const actual = normalize(output);
+            const expected = normalize(tc.corrected);
+            const pass = actual === expected;
+            results[i] = { state: pass ? 'pass' : 'fail', actual: output };
+            log(`  → ${pass ? '✓' : '✗'}  ${pass ? 'OK' : `"${actual}"`}`);
+        } catch (err) {
+            results[i] = { state: 'fail', actual: `[BŁĄD: ${err.message}]` };
+            log(`  ✗ Błąd: ${err.message}`);
+        } finally {
+            session?.destroy?.();
+        }
+
+        refreshResults();
+    }
+
+    runBtn.disabled = false;
+    stopBtn.disabled = true;
+    const passed = results.filter(r => r.state === 'pass').length;
+    log(`=== Wynik: ${passed}/${TEST_CASES.length} zaliczonych ===`);
+});
+
+stopBtn.addEventListener('click', () => { stopRequested = true; });
+
+initAI();
+</script>
+</body>
+</html>

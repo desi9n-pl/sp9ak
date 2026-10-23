@@ -1,0 +1,53 @@
+/* Colour themes. Everything else in the stylesheets reads these variables. */
+:root {
+    --bg: #0f0f12;
+    --surface: #1c1c21;
+    --border: #2e2e36;
+    --text: #e4e4e7;
+    --muted: #71717a;
+    --faint: #52525b;
+    --accent: #4f46e5;
+    --accent-h: #4338ca;
+    --caret: #818cf8;
+    --btn-bg: #27272a;
+    --btn-text: #a1a1aa;
+    --btn-border: #3f3f46;
+    --btn-hover: #3f3f46;
+    --dot-idle: #3f3f46;
+
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+}
+
+[data-theme="light"] {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --faint: #9ca3af;
+    --caret: #4f46e5;
+    --btn-bg: #f3f4f6;
+    --btn-text: #374151;
+    --btn-border: #d1d5db;
+    --btn-hover: #e5e7eb;
+    --dot-idle: #d1d5db;
+}
+
+[data-theme="sepia"] {
+    --bg: #f5f0e8;
+    --surface: #ede7d9;
+    --border: #d4c9b6;
+    --text: #3b2e20;
+    --muted: #8a7060;
+    --faint: #b0a090;
+    --accent: #7c5c2e;
+    --accent-h: #6b4e26;
+    --caret: #7c5c2e;
+    --btn-bg: #e8e0d0;
+    --btn-text: #5c4030;
+    --btn-border: #c8baa8;
+    --btn-hover: #ddd5c5;
+    --dot-idle: #c8baa8;
+}

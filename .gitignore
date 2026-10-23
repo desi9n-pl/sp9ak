@@ -1,0 +1,8 @@
+node_modules/
+chrome-profile/
+dist/
+__pycache__/
+.idea/
+sessions.json
+coverage/
+.coverage

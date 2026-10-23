@@ -1,0 +1,211 @@
+/* Panels above the bottom bar: settings, history, review and logs. */
+.panel {
+    display: none;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    transition: background 0.25s;
+}
+.panel.open { display: flex; }
+
+.panel-hdr {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 6px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+}
+.panel-title { flex: 1; }
+.panel-empty {
+    padding: 24px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--faint);
+}
+
+/* ── Settings ─────────────────────────────────────────────── */
+.themes {
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px 10px;
+}
+.themes-row { display: flex; align-items: center; gap: 8px; }
+.themes-label {
+    margin-right: 2px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.t-btn {
+    gap: 5px;
+    padding: 5px 11px;
+    border: 1.5px solid var(--btn-border);
+    border-radius: 6px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-weight: 500;
+}
+.t-btn:hover { background: var(--btn-hover); }
+.t-btn.active { border-color: var(--accent); color: var(--accent); }
+.swatch { width: 11px; height: 11px; flex-shrink: 0; border-radius: 50%; }
+.sw-light { background: #f0f0f0; border: 1.5px solid #d1d5db; }
+.sw-sepia { background: #e8d5b0; border: 1.5px solid #c8baa8; }
+.sw-dark { background: #27272a; border: 1.5px solid #52525b; }
+
+.ai-status-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; }
+.ai-status-dot.on { background: var(--ok); }
+.ai-status-dot.dl { background: var(--warn); }
+.ai-status-dot.off { background: var(--danger); }
+.ai-status-text {
+    flex: 1;
+    overflow: hidden;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ext-select,
+.ext-input {
+    min-width: 0;
+    padding: 4px 8px;
+    border: 1.5px solid var(--btn-border);
+    border-radius: 6px;
+    background: var(--btn-bg);
+    color: var(--text);
+    font-size: 12px;
+    outline: none;
+}
+.ext-select { flex-shrink: 0; cursor: pointer; }
+.ext-input { flex: 1; min-width: 50px; }
+.ext-input:focus { border-color: var(--accent); }
+.ext-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+}
+.ext-check input { accent-color: var(--accent); cursor: pointer; }
+
+/* ── History ──────────────────────────────────────────────── */
+.history-panel { max-height: 230px; }
+.history-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    overflow-y: auto;
+}
+.sess-item {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 6px;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+.sess-item:hover { border-color: var(--accent); }
+.sess-body { flex: 1; min-width: 0; }
+.sess-time { margin-bottom: 2px; font-size: 10px; color: var(--faint); }
+.sess-preview {
+    overflow: hidden;
+    font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.sess-del { flex-shrink: 0; font-size: 17px; }
+.sess-del:hover { color: var(--danger); }
+#clearAllBtn:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Semantic review ──────────────────────────────────────── */
+.semantic-panel { max-height: 220px; }
+.semantic-content {
+    flex: 1;
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.semantic-empty { padding: 8px 12px 12px; font-size: 13px; color: var(--muted); }
+
+/* What the recognizer heard (red) and what the model suggests instead (green). */
+.suspect-orig {
+    padding: 1px 3px;
+    border-radius: 3px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    font-weight: 700;
+    text-decoration: underline wavy var(--danger);
+    cursor: default;
+}
+.suspect-orig.accepted {
+    background: transparent;
+    color: var(--muted);
+    font-weight: 400;
+    text-decoration: line-through var(--muted);
+    cursor: pointer;
+}
+.suspect-orig.accepted:hover { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
+.suspect-sug {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 6px;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    border-radius: 4px;
+    background: rgba(34, 197, 94, 0.13);
+    color: var(--ok);
+    font-size: 0.92em;
+    font-weight: 700;
+    vertical-align: baseline;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+}
+.suspect-sug:hover { background: rgba(34, 197, 94, 0.26); border-color: rgba(34, 197, 94, 0.65); }
+.suspect-sug.accepted {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: var(--ok);
+    text-decoration: underline var(--ok);
+}
+
+/* ── Logs ─────────────────────────────────────────────────── */
+.logs-panel { max-height: 230px; }
+.logs-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+    overflow-y: auto;
+}
+.log-entry {
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--muted);
+    font-family: Consolas, Menlo, Monaco, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+.log-entry.log-ok { color: var(--ok); }
+.log-entry.log-warn { color: var(--warn); }
+.log-entry.log-err { color: var(--danger); }
+#clearLogsBtn:hover { border-color: var(--danger); color: var(--danger); }

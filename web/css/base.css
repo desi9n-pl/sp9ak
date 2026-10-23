@@ -1,0 +1,105 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+/* Author styles such as display:flex would otherwise beat the browser's [hidden] rule. */
+[hidden] { display: none !important; }
+
+body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100vh;
+    padding: 14px;
+    overflow: hidden;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.25s, color 0.25s;
+}
+
+button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, color 0.15s, border-color 0.15s;
+}
+button:active { transform: scale(0.96); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button svg { flex-shrink: 0; }
+
+/* Button variants */
+.btn-primary { background: var(--accent); color: #fff; min-width: 96px; justify-content: center; }
+.btn-primary:not(:disabled):hover { background: var(--accent-h); }
+
+.btn-secondary,
+.btn-icon {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1.5px solid var(--btn-border);
+}
+.btn-secondary:not(:disabled):hover,
+.btn-icon:hover { background: var(--btn-hover); }
+.btn-icon { padding: 8px 10px; }
+.btn-icon.active { border-color: var(--accent); color: var(--accent); }
+
+/* Compact buttons inside panels */
+.btn-small {
+    padding: 4px 10px;
+    border: 1.5px solid var(--btn-border);
+    border-radius: 6px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.btn-small:hover { background: var(--btn-hover); border-color: var(--accent); color: var(--accent); }
+
+.btn-ghost {
+    gap: 0;
+    padding: 3px 8px;
+    border: 1px solid var(--btn-border);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 400;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Icon-only buttons without a frame (close, delete) */
+.btn-bare {
+    gap: 0;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--faint);
+    line-height: 1;
+}
+
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 12px);
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 100;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
