@@ -17,6 +17,14 @@
     <link rel="stylesheet" href="css/modal.css">
 </head>
 <body>
+<div class="toolbar" id="toolbar">
+    <button class="btn-tiny" id="pinBtn" title="Przypnij okno na wierzchu (Always On Top)" aria-pressed="false" hidden>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="17" x2="12" y2="22"/>
+            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/>
+        </svg>
+    </button>
+</div>
 <div class="ta-wrap">
     <div class="ta-section">
         <span class="ta-label">Oryginał</span>
@@ -222,6 +230,7 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
             <span class="kbd-hint" id="kbdHint">Ctrl+D</span>
         </div>
         <span id="punctToggle" class="lang-chip" title="Interpunkcja">✦</span>
+        <span id="loudToggle" class="lang-chip" title="WIELKIE LITERY dla fraz mówionych wyraźnie głośniej niż zwykle">Aa</span>
         <span id="langToggle"  class="lang-chip" title="Przełącz język rozpoznawania (PL / EN)">PL</span>
         <button class="btn-icon" id="historyBtn" title="Historia sesji">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

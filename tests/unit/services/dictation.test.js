@@ -134,6 +134,15 @@ describe('writing speech into the field', () => {
         expect(editor.value).toBe('raz ręcznie dwa ');
     });
 
+    it('drops the unfinished phrase when the user presses Enter, so it is not written twice', () => {
+        dictation.start();
+        recognition.say('raz');
+        recognition.say('dwa', false);
+        editor.type('\n');
+        recognition.say('dwa');
+        expect(editor.value).toBe('raz \ndwa ');
+    });
+
     it('does not follow typing when not dictating', () => {
         editor.type('tekst');
         dictation.start();
@@ -229,6 +238,17 @@ describe('lifecycle', () => {
         expect(events.stopped).toHaveLength(1);
         expect(lastStatus()).toEqual({ text: 'Gotowy', active: false });
         expect(editor.focus).toHaveBeenCalled();
+    });
+
+    it('adds no space when stopped without anything dictated', () => {
+        editor.value = 'tekst';
+        editor.caret = 5;
+        for (let i = 0; i < 3; i++) {
+            dictation.start();
+            dictation.stop();
+            recognition.end();
+        }
+        expect(editor.value).toBe('tekst');
     });
 
     it('keeps interim text that never became final', () => {
@@ -382,5 +402,39 @@ describe('network trouble', () => {
         dictation.stop();
         vi.advanceTimersByTime(10_000);
         expect(recognition.starts).toBe(1);
+    });
+});
+
+describe('loudness capitals', () => {
+    const setup = (loud, enabled = true) => {
+        const editor = new FakeEditor();
+        const recognition = new FakeRecognition();
+        const tracker = { takeSegment: vi.fn(() => loud) };
+        const dictation = new Dictation({
+            editor,
+            createRecognition: () => recognition,
+            loudness: { tracker, enabled: () => enabled },
+        });
+        dictation.start();
+        return { editor, recognition, tracker };
+    };
+
+    it('writes a loud final phrase in capitals', () => {
+        const { editor, recognition } = setup(true);
+        recognition.say('to jest głośno');
+        expect(editor.value).toBe('TO JEST GŁOŚNO ');
+    });
+
+    it('leaves a normal phrase alone', () => {
+        const { editor, recognition } = setup(false);
+        recognition.say('to jest cicho');
+        expect(editor.value).toBe('to jest cicho ');
+    });
+
+    it('keeps learning but writes no capitals when the option is off', () => {
+        const { editor, recognition, tracker } = setup(true, false);
+        recognition.say('głośno');
+        expect(tracker.takeSegment).toHaveBeenCalled();
+        expect(editor.value).toBe('głośno ');
     });
 });

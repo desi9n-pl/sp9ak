@@ -25,6 +25,7 @@ export class Dictation extends Emitter {
     language = DEFAULT_LANGUAGE;
     span = new SpeechSpan();
     #editor;
+    #loudness;
     #recognition;
     #listening = false;
     #rememberedCaret = 0;
@@ -38,10 +39,12 @@ export class Dictation extends Emitter {
     /**
      * @param editor        text field wrapper (see ui/editor.js)
      * @param createRecognition  returns a SpeechRecognition-like object, or null when unsupported
+     * @param loudness      optional { tracker, enabled() }: phrases spoken louder than usual become CAPITALS
      */
-    constructor({ editor, createRecognition }) {
+    constructor({ editor, createRecognition, loudness = null }) {
         super();
         this.#editor = editor;
+        this.#loudness = loudness;
         this.#recognition = createRecognition();
         if (this.#recognition) this.#configure();
         editor.on('interact', () => this.rememberCaret());
@@ -132,7 +135,25 @@ export class Dictation extends Emitter {
 
     /** The user typed while dictating: the recognizer's text now continues from the caret. */
     #reanchor() {
-        if (this.#listening) this.span.begin(this.#editor.caret);
+        if (!this.#listening) return;
+        const caret = this.#dropInterim(this.#editor.caret);
+        this.#editor.setCaret(caret);
+        this.span.begin(caret);
+    }
+
+    /**
+     * The unfinished phrase is no longer owned by any span once the user edits, yet the recognizer
+     * will report it again from the new anchor; leaving it in the field would write it twice.
+     * Returns the caret, moved back if the phrase stood before it.
+     */
+    #dropInterim(caret) {
+        const { interim, start } = this.span;
+        if (!interim) return caret;
+        const value = this.#editor.value;
+        const at = value.indexOf(interim, start);
+        if (at === -1) return caret;
+        this.#editor.setText(value.slice(0, at) + value.slice(at + interim.length));
+        return at < caret ? caret - interim.length : caret;
     }
 
     #onResult(event) {
@@ -141,10 +162,16 @@ export class Dictation extends Emitter {
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const { transcript } = event.results[i][0];
-            if (event.results[i].isFinal) finals += `${transcript} `;
+            if (event.results[i].isFinal) finals += `${this.#shout() ? transcript.toUpperCase() : transcript} `;
             else interim += transcript;
         }
         this.#write(this.span.final + finals, interim);
+    }
+
+    /** Closes the phrase for the loudness tracker; true when it should be written in capitals. */
+    #shout() {
+        const loud = this.#loudness?.tracker.takeSegment() ?? false;
+        return loud && this.#loudness.enabled();
     }
 
     #onError({ error }) {
@@ -202,7 +229,9 @@ export class Dictation extends Emitter {
 
     #finish() {
         this.span.commitInterim();
-        const raw = this.span.final.endsWith(' ') ? this.span.final : `${this.span.final} `;
+        // nothing was said: a bare start/stop must not leave a space behind
+        const { final } = this.span;
+        const raw = final === '' || final.endsWith(' ') ? final : `${final} `;
         this.#write(raw, '');
         this.emit('stopped');
         this.emit('finished', { text: this.span.final });

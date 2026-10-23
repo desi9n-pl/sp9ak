@@ -124,6 +124,16 @@ Skrypt automatycznie:
 - otwiera aplikację w oknie Chrome Beta z izolowanym profilem
 - po zamknięciu okna zatrzymuje serwer
 
+### Zgoda na mikrofon
+
+Przy pierwszym uruchomieniu (a także po usunięciu katalogu `chrome-profile`) Chrome zapyta o dostęp do mikrofonu:
+
+![Okno z prośbą o pozwolenie na użycie mikrofonu](docs/zgoda-mikrofon.png)
+
+Wybierz **Zezwalaj podczas odwiedzania witryny** — zgoda zostanie zapamiętana w profilu aplikacji i pytanie nie pojawi się ponownie. Opcja „Zezwól tym razem" wymusza ponowne pytanie przy każdym uruchomieniu, a „Nigdy nie zezwalaj" całkowicie blokuje dyktowanie.
+
+Jeśli odmówiono zgody przez pomyłkę, zobacz [Rozwiązywanie problemów](#dyktowanie-nie-działa-mikrofon-zablokowany).
+
 ---
 
 ## Krok 5 — Weryfikacja działania AI w aplikacji
@@ -158,6 +168,17 @@ Aby zobaczyć szczegółowe logi diagnostyczne: kliknij ikonę **☰** (ustawien
 
 ### Aplikacja czeka długo z komunikatem "Inicjalizacja modelu…"
 Przy pierwszym uruchomieniu z nowym profilem Chrome rejestruje model — to normalne i trwa do kilku minut. Poczekaj, aż wskaźnik ✦ zmieni kolor na zielony.
+
+### Dyktowanie nie działa (mikrofon zablokowany)
+Prawdopodobnie wybrano „Nigdy nie zezwalaj" w oknie z prośbą o dostęp do mikrofonu. Okno aplikacji nie ma paska adresu, więc ustawienie zmienisz tak:
+1. Zamknij okno sp9ak.
+2. Otwórz Chrome Beta z profilem aplikacji i wejdź na `chrome://settings/content/microphone`:
+   ```bash
+   google-chrome-beta --user-data-dir="$PWD/chrome-profile" chrome://settings/content/microphone
+   ```
+3. Usuń `http://localhost:17823` z listy zablokowanych (lub zmień na „Zezwalaj"), zamknij Chrome i uruchom `./sp9ak.sh`.
+
+Alternatywnie usuń katalog `chrome-profile` — przy następnym starcie pytanie pojawi się ponownie (model Gemini Nano zostanie wtedy zarejestrowany od nowa, patrz niżej).
 
 ### Błąd "port 17823 jest zajęty"
 Inny proces używa portu. Sprawdź i zakończ go:
@@ -251,7 +272,32 @@ Serwer w testach zapisuje historię do pliku tymczasowego (`SP9AK_SESSIONS`), ni
 
 Zależności Pythona (`gi`, `python-xlib`) są potrzebne tylko do ikony w trayu i skrótu globalnego. Pozostały kod używa wyłącznie biblioteki standardowej.
 
+### Gałęzie i wydania
+
+Cała praca trafia pull requestami do `dev`. Stabilne wydanie powstaje dopiero z `dev`:
+
+```
+feature/*, fix/*, docs/*  →  dev  →  release/YYYY-MM-DD  →  main (tag vYYYY.MM.DD)
+```
+
+Na `release/YYYY-MM-DD` są tylko poprawki stabilizujące i pełne testy (`lint`, `test`, `test:py`, `test:e2e`, `test:monkey`, `packaging/build-deb.sh`). Wersje próbne mają tag `vYYYY.MM.DD-rc.N`. Szczegóły dla współautorów i agentów AI: [AGENTS.md](AGENTS.md#wydania).
+
 ---
+
+## Instalacja w systemie (pakiet .deb)
+
+To dodatkowa, opcjonalna możliwość. Aplikację nadal można po prostu sklonować i uruchomić przez `./sp9ak.sh` (Krok 4), bez instalowania czegokolwiek w systemie; wtedy profil i historia zostają w katalogu projektu. Pakiet jest dla osób, które wolą uruchamiać aplikację z menu systemowego zamiast z terminala.
+
+```bash
+packaging/build-deb.sh            # tworzy dist/sp9ak_1.0.0_all.deb
+sudo apt install ./dist/sp9ak_1.0.0_all.deb
+```
+
+Aplikacja pojawi się w menu systemowym w kategorii **Biuro** (polecenie `sp9ak`). Chrome Beta (kroki 1–3) instaluje się osobno. Profil Chrome i historia sesji są w `~/.local/share/sp9ak`. Usunięcie: `sudo apt remove sp9ak`.
+
+## WIELKIE LITERY dla głośniejszych fraz
+
+Chip **Aa** na dolnym pasku (domyślnie wyłączony) włącza analizę głośności głosu. Aplikacja uczy się Twojego zwykłego poziomu (po kilku pierwszych frazach), a fraza wypowiedziana wyraźnie głośniej (ok. 1,5× średniej) zostanie zapisana wielkimi literami. Rozpoznawanie działa na całych frazach, nie na pojedynczych słowach.
 
 ## Globalny skrót systemowy (X11)
 
@@ -260,6 +306,11 @@ pokazuje okno sp9ak i włącza dyktowanie (jeśli już trwa, nic nie zmienia). *
 
 Inne skróty: `SP9AK_HOTKEY="ctrl+alt+d" SP9AK_HOTKEY_STOP="ctrl+alt+s" ./sp9ak.sh`. Jeśli skrót jest zajęty przez inną aplikację, tray działa dalej bez skrótu.
 Na Waylandzie globalne skróty nie są dostępne dla zwykłych programów – ustaw wtedy skrót w ustawieniach systemu.
+
+## Pasek przycisków okna (X11)
+
+Nad edytorem jest maleńki pasek z przyciskami okna. Pierwszy z nich, pinezka, przypina okno na wierzchu (Always On Top)
+i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylandzie, przycisk jest ukryty.
 
 ## Praca bez internetu / przy słabym łączu
 

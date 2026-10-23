@@ -123,6 +123,26 @@ def toggle():
         bring_here()
 
 
+def is_always_on_top(window):
+    return '_NET_WM_STATE_ABOVE' in run('xprop', '-id', hex(window), '_NET_WM_STATE')
+
+
+def window_state():
+    """What the page may offer: `supported` is False without wmctrl or while the window is not found."""
+    window = find_window()
+    if window is None:
+        return {'supported': False, 'alwaysOnTop': False}
+    return {'supported': True, 'alwaysOnTop': is_always_on_top(window)}
+
+
+def set_always_on_top(enabled):
+    """Pins or unpins the window above all others; returns the resulting state."""
+    window = find_window()
+    if window is not None:
+        run('wmctrl', '-i', '-r', hex(window), '-b', f"{'add' if enabled else 'remove'},above")
+    return window_state()
+
+
 def close_window():
     window = find_window()
     if window is not None:
