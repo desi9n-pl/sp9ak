@@ -51,6 +51,12 @@ feature/*, fix/*, docs/*  →  dev  →  release/YYYY-MM-DD  →  main (tag vYYY
    (pakiet `.deb`: `YYYY.MM.DD~rcN`).
 5. Gdy wszystko przechodzi: tag `vYYYY.MM.DD`, scalenie do `main` (`--no-ff`) i z powrotem do `dev`.
 
+### Porządek w gałęziach
+
+Po scaleniu PR-a kasujemy jego gałąź (na GitHubie i lokalnie). Gałąź śledzi własną gałąź na `origin`,
+nie `origin/dev` (sprawdź `git branch -vv`). Zbędne `git worktree` usuwamy. Pełna lista zasad i
+komendy do przeglądu: [AGENTS.md](AGENTS.md#porządek-w-gałęziach).
+
 ## Zanim otworzysz pull request
 
 1. `npm run lint` (eslint + ruff) bez błędów.

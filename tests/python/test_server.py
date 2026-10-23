@@ -101,7 +101,8 @@ class WindowTest(ServerTestCase):
             self.assertEqual(self.json_request('GET', '/api/window'), (200, {'supported': True, 'alwaysOnTop': False}))
 
     def test_post_pins_the_window(self):
-        with mock.patch.object(app.x11, 'set_always_on_top', return_value={'supported': True, 'alwaysOnTop': True}) as pin:
+        pinned = {'supported': True, 'alwaysOnTop': True}
+        with mock.patch.object(app.x11, 'set_always_on_top', return_value=pinned) as pin:
             status, payload = self.json_request('POST', '/api/window', {'alwaysOnTop': True})
         pin.assert_called_once_with(True)
         self.assertEqual((status, payload['alwaysOnTop']), (200, True))
