@@ -277,6 +277,29 @@ describe('CorrectedPane', () => {
             expect(pane.value).toBe('');
         });
 
+        it('empties the pane once the editor is emptied, and renders the same text again afterwards', () => {
+            pane.show();
+            editor.setText('tekst');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('[tekst] ');
+            editor.setText('');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('');
+            expect(pane.visible).toBe(true);
+            editor.setText('tekst');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('[tekst] ');
+        });
+
+        it('flush right after emptying the editor leaves the pane empty', () => {
+            pane.show();
+            editor.setText('tekst');
+            pane.flush();
+            editor.setText('');
+            pane.flush();
+            expect(pane.value).toBe('');
+        });
+
         it('does not re-render the same text twice', () => {
             pane.show();
             editor.setText('tekst');

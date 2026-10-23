@@ -61,7 +61,14 @@ export class CorrectedPane {
 
     #refresh(editor, render) {
         const text = editor.value.trim();
-        if (!this.visible || !text || text === this.#lastSource) return;
+        if (!this.visible) return;
+        if (!text) {
+            // Emptied editor: leave no old rendering behind, and let the same text render again later.
+            this.#lastSource = '';
+            this.field.value = '';
+            return;
+        }
+        if (text === this.#lastSource) return;
         this.#lastSource = text;
         this.field.value = `${render(text).trimEnd()} `;
     }
