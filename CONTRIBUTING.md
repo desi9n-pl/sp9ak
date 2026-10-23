@@ -20,8 +20,9 @@ Aplikacja ma działać po zwykłym `git clone` i `./sp9ak.sh`. Nic, co wymaga in
 
 | Gałąź | Rola |
 |---|---|
-| `main` | stabilne wydania; nie commitujemy do niej bezpośrednio |
+| `main` | ostatnie stabilne wydanie; nie commitujemy do niej bezpośrednio |
 | `dev` | gałąź integracyjna; trafia tu cała praca, wyłącznie przez pull requesty |
+| `release/YYYY-MM-DD` | wydanie wycięte z `dev`; tylko poprawki stabilizujące |
 | `feature/<opis>` | nowa funkcja |
 | `fix/<opis>` | poprawka błędu |
 | `docs/<opis>` | sama dokumentacja |
@@ -33,6 +34,22 @@ niepowiązane zmiany idą do osobnych gałęzi i osobnych commitów.
 git switch dev && git pull
 git switch -c fix/empty-dictation-space
 ```
+
+## Wydania
+
+Najpierw cała praca trafia do `dev`, dopiero z `dev` powstaje stabilne wydanie:
+
+```
+feature/*, fix/*, docs/*  →  dev  →  release/YYYY-MM-DD  →  main (tag vYYYY.MM.DD)
+```
+
+1. Wszystkie gotowe PR-y są scalone do `dev`.
+2. Wycinamy `release/YYYY-MM-DD` z `dev` (drugie tego samego dnia: `release/YYYY-MM-DD.2`).
+3. Na gałęzi release tylko poprawki stabilizujące, przez PR-y do niej; poprawki wracają też do `dev`.
+4. Kandydata sprawdzamy: `npm run lint`, `npm test`, `npm run test:py`, `npm run test:e2e`,
+   `npm run test:monkey` i `packaging/build-deb.sh`. Wersje próbne: tag `vYYYY.MM.DD-rc.N`
+   (pakiet `.deb`: `YYYY.MM.DD~rcN`).
+5. Gdy wszystko przechodzi: tag `vYYYY.MM.DD`, scalenie do `main` (`--no-ff`) i z powrotem do `dev`.
 
 ## Zanim otworzysz pull request
 
