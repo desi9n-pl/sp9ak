@@ -97,12 +97,12 @@
 </div>
 
 <div class="modal-backdrop" id="installModal">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="installModalTitle" tabindex="-1">
         <div class="modal-hdr">
-            <span class="modal-title">Jak zainstalować Gemini Nano (Chrome Beta 149)</span>
+            <span class="modal-title" id="installModalTitle">Jak zainstalować Gemini Nano (Chrome Beta 149)</span>
             <button class="btn-bare modal-close" id="installModalClose">✕</button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" tabindex="0">
             <h2>Wymagania</h2>
             <ul>
                 <li><strong>Chrome Beta 149</strong> lub nowszy (Linux 64-bit)</li>
