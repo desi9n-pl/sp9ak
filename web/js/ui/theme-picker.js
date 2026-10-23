@@ -13,6 +13,9 @@ export class ThemePicker {
     apply(theme) {
         this.root.dataset.theme = theme;
         this.storage.set(STORAGE_KEYS.theme, theme);
-        this.buttons.forEach(button => button.classList.toggle('active', button.dataset.t === theme));
+        this.buttons.forEach(button => {
+            button.classList.toggle('active', button.dataset.t === theme);
+            button.setAttribute('aria-pressed', String(button.dataset.t === theme));
+        });
     }
 }
