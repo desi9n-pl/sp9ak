@@ -14,7 +14,9 @@ export class PanelManager extends Emitter {
     constructor(definitions) {
         super();
         this.definitions = definitions;
-        for (const [name, { button, manual }] of Object.entries(definitions)) {
+        for (const [name, { panel, button, manual }] of Object.entries(definitions)) {
+            button.setAttribute('aria-controls', panel.id);
+            button.setAttribute('aria-expanded', 'false');
             if (!manual) button.addEventListener('click', () => this.toggle(name));
         }
     }
@@ -48,6 +50,7 @@ export class PanelManager extends Emitter {
         const changed = panel.classList.contains('open') !== open;
         panel.classList.toggle('open', open);
         button.classList.toggle('active', open);
+        button.setAttribute('aria-expanded', String(open));
         if (changed) this.emit(open ? 'open' : 'close', name);
     }
 }

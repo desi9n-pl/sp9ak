@@ -17,7 +17,8 @@
     <link rel="stylesheet" href="css/modal.css">
 </head>
 <body>
-<div class="toolbar pending" id="toolbar">
+<h1 class="sr-only">sp9ak – dyktowanie głosowe</h1>
+<div class="toolbar pending" id="toolbar" role="toolbar" aria-label="Narzędzia okna">
     <button class="btn-tiny" id="pinBtn" aria-label="Przypnij okno na wierzchu" title="Przypnij okno na wierzchu (Always On Top)" aria-pressed="false" hidden>
         <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="17" x2="12" y2="22"/>
@@ -25,11 +26,11 @@
         </svg>
     </button>
 </div>
-<div class="ta-wrap">
+<main class="ta-wrap">
     <div class="ta-section">
-        <span class="ta-label">Oryginał</span>
+        <span class="ta-label" id="outputLabel">Oryginał</span>
         <div class="ta-inner">
-            <textarea id="output" placeholder="Kliknij „Dyktuj” i zacznij mówić…"></textarea>
+            <textarea id="output" aria-labelledby="outputLabel" placeholder="Kliknij „Dyktuj” i zacznij mówić…"></textarea>
             <div class="empty-state" id="emptyState">
                 <button class="big-dict" id="bigDictBtn">
                     <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
@@ -43,18 +44,18 @@
         </div>
     </div>
     <div class="ta-section" id="correctedSection" hidden>
-        <span class="ta-label">Tekst po korekcie AI</span>
+        <span class="ta-label" id="correctedLabel">Tekst po korekcie AI</span>
         <div class="ta-inner">
-            <textarea id="corrected" placeholder="Poprawiony tekst pojawi się tutaj…" spellcheck="false" readonly></textarea>
+            <textarea id="corrected" aria-labelledby="correctedLabel" placeholder="Poprawiony tekst pojawi się tutaj…" spellcheck="false" readonly></textarea>
         </div>
     </div>
-</div>
+</main>
 
 <canvas id="waveform" aria-hidden="true"></canvas>
 
-<div class="panel themes" id="themesPanel">
-    <div class="themes-row">
-        <span class="themes-label">Motyw:</span>
+<div class="panel themes" id="themesPanel" role="region" aria-label="Motyw i ustawienia">
+    <div class="themes-row" role="group" aria-labelledby="themeLabel">
+        <span class="themes-label" id="themeLabel">Motyw:</span>
         <button class="t-btn" data-t="light"><span class="swatch sw-light"></span>Jasny</button>
         <button class="t-btn" data-t="sepia"><span class="swatch sw-sepia"></span>Sepia</button>
         <button class="t-btn" data-t="dark" ><span class="swatch sw-dark" ></span>Ciemny</button>
@@ -77,14 +78,14 @@
         <label class="ext-check"><input type="checkbox" id="logsToggle"> Pokaż przycisk logów diagnostycznych</label>
     </div>
     <div class="themes-row">
-        <span class="themes-label">Zewn. AI:</span>
-        <select class="ext-select" id="extProviderSelect">
+        <span class="themes-label" id="extLabel">Zewn. AI:</span>
+        <select class="ext-select" id="extProviderSelect" aria-labelledby="extLabel">
             <option value="">— brak —</option>
             <option value="claude">Claude</option>
             <option value="openai">OpenAI</option>
         </select>
-        <input type="text"     class="ext-input" id="extModelInput" placeholder="model" hidden>
-        <input type="password" class="ext-input" id="extKeyInput"   placeholder="klucz API" hidden>
+        <input type="text"     class="ext-input" id="extModelInput" aria-label="Model zewnętrznego AI" autocomplete="off" placeholder="model" hidden>
+        <input type="password" class="ext-input" id="extKeyInput" aria-label="Klucz API" autocomplete="off" placeholder="klucz API" hidden>
         <button class="btn-small" id="extTestBtn" hidden>Testuj</button>
         <button class="btn-small" id="extSaveBtn" hidden>Zapisz</button>
         <button class="btn-small" id="extClearBtn" hidden title="Usuń zapisany klucz">Usuń</button>
@@ -92,7 +93,7 @@
     <div class="themes-row" id="extStatusRow" hidden>
         <span class="themes-label"></span>
         <div class="ai-status-dot off" id="extStatusDot"></div>
-        <span class="ai-status-text" id="extStatusText"></span>
+        <span class="ai-status-text" id="extStatusText" role="status"></span>
     </div>
 </div>
 
@@ -191,7 +192,7 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
     </div>
 </div>
 
-<div class="panel history-panel" id="historyPanel">
+<div class="panel history-panel" id="historyPanel" role="region" aria-label="Historia sesji">
     <div class="panel-hdr">
         <span class="panel-title">Historia sesji</span>
         <button class="btn-ghost" id="clearAllBtn">Wyczyść wszystkie</button>
@@ -200,7 +201,7 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
     <div id="historyEmpty" class="panel-empty">Brak zapisanych sesji</div>
 </div>
 
-<div class="panel logs-panel" id="logsPanel">
+<div class="panel logs-panel" id="logsPanel" role="region" aria-label="Logi diagnostyczne">
     <div class="panel-hdr">
         <span class="panel-title">Logi diagnostyczne</span>
         <button class="btn-ghost" id="copyLogsBtn">Kopiuj logi</button>
@@ -211,7 +212,7 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
     </div>
 </div>
 
-<div class="panel semantic-panel" id="semanticPanel">
+<div class="panel semantic-panel" id="semanticPanel" role="region" aria-label="Korekta semantyczna">
     <div class="panel-hdr">
         <span class="panel-title">Korekta semantyczna — wybierz sugestię, żeby ją zaakceptować</span>
         <button class="btn-small" id="semanticAcceptAllBtn">Zaakceptuj wszystkie</button>
@@ -222,11 +223,11 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
     <div id="semanticEmpty"   class="semantic-empty" hidden>Brak podejrzanych słów ✓</div>
 </div>
 
-<div class="bar">
+<footer class="bar">
     <div class="bar-top">
         <div class="status">
             <div class="dot" id="dot"></div>
-            <span class="status-text" id="msg">Gotowy</span>
+            <span class="status-text" id="msg" role="status">Gotowy</span>
             <span class="kbd-hint" id="kbdHint">Ctrl+D</span>
         </div>
         <button type="button" id="punctToggle" class="lang-chip" title="Interpunkcja" aria-label="Automatyczna interpunkcja" aria-pressed="false">✦</button>
@@ -293,7 +294,7 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
             <span class="btn-label"><span id="dictLabel">Dyktuj</span><span class="btn-kbd">Ctrl+D</span></span>
         </button>
     </div>
-</div>
+</footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
