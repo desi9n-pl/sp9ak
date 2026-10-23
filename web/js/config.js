@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
     theme: 'sp9ak-theme',
     logsVisible: 'sp9ak-logs',
     punctuation: 'sp9ak-punct',
+    loudCaps: 'sp9ak-loud-caps',
     extProvider: 'sp9ak-ext-provider',
     extModel: 'sp9ak-ext-model',
     extKey: 'sp9ak-ext-key',

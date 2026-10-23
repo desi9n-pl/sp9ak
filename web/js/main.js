@@ -1,5 +1,7 @@
 import { MIN_AUTOSAVE_LENGTH } from './core/sessions.js';
 import { AiAssistant } from './services/ai-assistant.js';
+import { LoudnessTracker } from './core/loudness.js';
+import { LoudToggle } from './ui/loud-toggle.js';
 import { Dictation } from './services/dictation.js';
 import { ExternalAi } from './services/external-ai.js';
 import { GeminiNano } from './services/gemini-nano.js';
@@ -41,8 +43,11 @@ const corrected = new CorrectedPane({ toast });
 const history = new SessionHistory({ storage });
 
 const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+const loudness = new LoudnessTracker({ speechLevel: SPEECH_LEVEL });
+const loudToggle = new LoudToggle({ storage });
 const dictation = new Dictation({
     editor,
+    loudness: { tracker: loudness, enabled: () => loudToggle.enabled },
     createRecognition: () => (SpeechRecognition ? new SpeechRecognition() : null),
 });
 
@@ -95,6 +100,7 @@ new SemanticView({
 const dots = byId('dots');
 const waveform = new Waveform({
     onFrame(level) {
+        if (dictation.listening) loudness.record(level);
         dots.classList.toggle('show', level > SPEECH_LEVEL && !dictation.hasInterim && dictation.listening);
     },
 });
@@ -103,6 +109,7 @@ dictation.on('status', ({ text, active }) => status.set(text, active));
 dictation.on('toast', ({ text, ms }) => toast.show(text, ms));
 dictation.on('started', () => waveform.start());
 dictation.on('stopped', () => {
+    loudness.discardSegment();
     waveform.stop();
     dots.classList.remove('show');
 });

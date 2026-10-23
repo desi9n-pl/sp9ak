@@ -25,6 +25,7 @@ export class Dictation extends Emitter {
     language = DEFAULT_LANGUAGE;
     span = new SpeechSpan();
     #editor;
+    #loudness;
     #recognition;
     #listening = false;
     #rememberedCaret = 0;
@@ -38,10 +39,12 @@ export class Dictation extends Emitter {
     /**
      * @param editor        text field wrapper (see ui/editor.js)
      * @param createRecognition  returns a SpeechRecognition-like object, or null when unsupported
+     * @param loudness      optional { tracker, enabled() }: phrases spoken louder than usual become CAPITALS
      */
-    constructor({ editor, createRecognition }) {
+    constructor({ editor, createRecognition, loudness = null }) {
         super();
         this.#editor = editor;
+        this.#loudness = loudness;
         this.#recognition = createRecognition();
         if (this.#recognition) this.#configure();
         editor.on('interact', () => this.rememberCaret());
@@ -141,10 +144,16 @@ export class Dictation extends Emitter {
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const { transcript } = event.results[i][0];
-            if (event.results[i].isFinal) finals += `${transcript} `;
+            if (event.results[i].isFinal) finals += `${this.#shout() ? transcript.toUpperCase() : transcript} `;
             else interim += transcript;
         }
         this.#write(this.span.final + finals, interim);
+    }
+
+    /** Closes the phrase for the loudness tracker; true when it should be written in capitals. */
+    #shout() {
+        const loud = this.#loudness?.tracker.takeSegment() ?? false;
+        return loud && this.#loudness.enabled();
     }
 
     #onError({ error }) {
