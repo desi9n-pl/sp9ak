@@ -25,9 +25,27 @@ Najpierw cała praca trafia do `dev`, dopiero z `dev` powstaje stabilne wydanie.
 1. Gotowe zmiany scalamy do `dev` pull requestami (jak wyżej). Wszystkie otwarte PR-y wchodzą do `dev`, zanim ruszy wydanie.
 2. Wydanie wycinamy z `dev` jako `release/YYYY-MM-DD` (data wycięcia; drugie tego samego dnia: `release/YYYY-MM-DD.2`).
 3. Na gałęzi release nie dodajemy nowych funkcji, tylko poprawki stabilizujące, przez PR-y do niej. Poprawkę z release wracamy też do `dev`.
+   Gdy poprawek nie ma, `release/YYYY-MM-DD` jest po prostu tym samym commitem co `dev` (bez własnych commitów i bez scalania z powrotem).
 4. Kandydata sprawdzamy pełnym zestawem: `npm run lint`, `npm test`, `npm run test:py`, `npm run test:e2e`, `npm run test:monkey` oraz `packaging/build-deb.sh`. Wersje próbne oznaczamy tagiem `vYYYY.MM.DD-rc.N` (pakiet `.deb`: `YYYY.MM.DD~rcN`).
 5. Gdy wszystko przechodzi: tag `vYYYY.MM.DD`, scalenie `release/YYYY-MM-DD` do `main` (`--no-ff`) i z powrotem do `dev`. `main` zawsze wskazuje ostatnie stabilne wydanie.
 6. Tak jak przy PR-ach: nie wypychamy, nie tagujemy i nie scalamy bez wyraźnej zgody właściciela.
+
+## Porządek w gałęziach
+
+- Po scaleniu PR-a kasujemy jego gałąź na GitHubie i lokalnie (najlepiej włączyć w ustawieniach repo „Automatically delete head branches”). Nie zostawiamy scalonych gałęzi.
+- Gałąź tematyczna powstaje z aktualnego `dev` i śledzi **własną** gałąź na `origin` (`git push -u origin <gałąź>`), nigdy `origin/dev`. Kontrola: `git branch -vv`.
+- Jedna gałąź = jedno miejsce pracy. Dodatkowy `git worktree` zdejmujemy (`git worktree remove`), gdy skończymy, bo blokuje przełączenie gałęzi w IDE.
+- Nowe gałęzie mają tylko prefiksy `feature/`, `fix/`, `docs/` oraz `release/`. Nie pracujemy na `dev`, `main` ani `release/*` poza poprawkami stabilizującymi.
+- Nie zostawiamy lokalnych commitów, których nie ma na `origin`: wypychamy je (za zgodą właściciela) albo świadomie porzucamy.
+- Przed wydaniem i co jakiś czas robimy przegląd:
+
+```bash
+git fetch --all --prune
+git branch -vv                                   # brakujące lub błędne upstreamy
+git branch -r --merged origin/dev                # scalone, do skasowania (poza dev, main, release/*)
+git rev-list --left-right --count origin/main...origin/dev   # ile dev wyprzedza main
+git worktree list
+```
 
 ## Commity
 
