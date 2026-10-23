@@ -116,13 +116,23 @@
     border: 1px solid var(--border);
     border-radius: 7px;
     background: var(--bg);
-    cursor: pointer;
     transition: border-color 0.15s;
 }
-.sess-item:hover { border-color: var(--accent); }
-.sess-body { flex: 1; min-width: 0; }
-.sess-time { margin-bottom: 2px; font-size: 10px; color: var(--faint); }
+.sess-item:hover, .sess-item:focus-within { border-color: var(--accent); }
+/* The whole row is one button that loads the session. */
+.sess-body {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-weight: 400;
+    text-align: left;
+}
+.sess-time { display: block; margin-bottom: 2px; font-size: 10px; color: var(--faint); }
 .sess-preview {
+    display: block;
     overflow: hidden;
     font-size: 12px;
     white-space: nowrap;
@@ -178,6 +188,7 @@
     transition: background 0.12s, border-color 0.12s;
 }
 .suspect-sug:hover { background: rgba(34, 197, 94, 0.26); border-color: rgba(34, 197, 94, 0.65); }
+.suspect-sug.accepted::before { content: '✓ '; }  /* not by colour alone */
 .suspect-sug.accepted {
     background: rgba(34, 197, 94, 0.22);
     border-color: var(--ok);
