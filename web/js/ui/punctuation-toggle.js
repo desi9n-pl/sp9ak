@@ -30,5 +30,6 @@ export class PunctuationToggle {
 
     #render() {
         this.chip.classList.toggle('active', this.enabled);
+        this.chip.setAttribute('aria-pressed', String(this.enabled));
     }
 }

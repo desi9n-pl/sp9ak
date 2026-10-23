@@ -7,7 +7,7 @@ import { ExternalAiForm } from '../../../web/js/ui/external-ai-form.js';
 import { SemanticView } from '../../../web/js/ui/semantic-view.js';
 import { Editor } from '../../../web/js/ui/editor.js';
 import { PanelManager } from '../../../web/js/ui/panels.js';
-import { $, click, mountPage } from './fixture.js';
+import { $, click, key, mountPage } from './fixture.js';
 
 function fakeAssistant({ config = { provider: '', model: '', apiKey: '' }, indicator = 'off' } = {}) {
     const ai = Object.assign(new Emitter(), {
@@ -240,6 +240,20 @@ describe('SemanticView', () => {
         click($('semanticContent').querySelector('.suspect-sug'));
         click($('semanticApplyBtn'));
         expect(onApply).toHaveBeenCalledWith('to jest tekstowy wynik');
+    });
+
+    it('lets suggestions be toggled from the keyboard', async () => {
+        await review();
+        const suggestion = $('semanticContent').querySelector('.suspect-sug');
+        expect(suggestion.getAttribute('role')).toBe('button');
+        expect(suggestion.tabIndex).toBe(0);
+        key(suggestion, { key: 'Enter' });
+        expect(suggestion.getAttribute('aria-pressed')).toBe('true');
+        const original = $('semanticContent').querySelector('.suspect-orig');
+        expect(original.tabIndex).toBe(0);
+        key(suggestion, { key: ' ' });
+        expect(suggestion.getAttribute('aria-pressed')).toBe('false');
+        expect(original.hasAttribute('role')).toBe(false);
     });
 
     it('ignores a click on a plain original', async () => {

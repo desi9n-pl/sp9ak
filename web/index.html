@@ -214,7 +214,7 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
 
 <div class="panel semantic-panel" id="semanticPanel" role="region" aria-label="Korekta semantyczna">
     <div class="panel-hdr">
-        <span class="panel-title">Korekta semantyczna — kliknij zieloną sugestię, żeby ją zaakceptować</span>
+        <span class="panel-title">Korekta semantyczna — wybierz sugestię, żeby ją zaakceptować</span>
         <button class="btn-small" id="semanticAcceptAllBtn">Zaakceptuj wszystkie</button>
         <button class="btn-small" id="semanticApplyBtn">Zastosuj</button>
         <button class="btn-small" id="semanticCloseBtn">✕</button>
@@ -230,9 +230,9 @@ await s.prompt("Napisz jedno zdanie po polsku")</pre>
             <span class="status-text" id="msg" role="status">Gotowy</span>
             <span class="kbd-hint" id="kbdHint">Ctrl+D</span>
         </div>
-        <span id="punctToggle" class="lang-chip" title="Interpunkcja">✦</span>
-        <span id="loudToggle" class="lang-chip" title="WIELKIE LITERY dla fraz mówionych wyraźnie głośniej niż zwykle">Aa</span>
-        <span id="langToggle"  class="lang-chip" title="Przełącz język rozpoznawania (PL / EN)">PL</span>
+        <button type="button" id="punctToggle" class="lang-chip" title="Interpunkcja" aria-label="Automatyczna interpunkcja" aria-pressed="false">✦</button>
+        <button type="button" id="loudToggle" class="lang-chip" title="WIELKIE LITERY dla fraz mówionych wyraźnie głośniej niż zwykle" aria-label="Wielkie litery dla fraz mówionych głośniej" aria-pressed="false">Aa</button>
+        <button type="button" id="langToggle" class="lang-chip" title="Przełącz język rozpoznawania (PL / EN)" aria-label="Język rozpoznawania: polski">PL</button>
         <button class="btn-icon" id="historyBtn" aria-label="Historia sesji" title="Historia sesji">
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="8"    y1="6"  x2="21"   y2="6"/>

@@ -25,16 +25,18 @@ export class HistoryView {
         const item = document.createElement('div');
         item.className = 'sess-item';
 
-        const time = document.createElement('div');
+        const time = document.createElement('span');
         time.className = 'sess-time';
         time.textContent = new Date(ts).toLocaleString('pl-PL', TIME_FORMAT);
 
-        const preview = document.createElement('div');
+        const preview = document.createElement('span');
         preview.className = 'sess-preview';
         preview.textContent = text.length > PREVIEW_LENGTH ? `${text.slice(0, PREVIEW_LENGTH)}…` : text;
 
-        const body = document.createElement('div');
+        const body = document.createElement('button');
+        body.type = 'button';
         body.className = 'sess-body';
+        body.addEventListener('click', () => this.onSelect(text));
         body.append(time, preview);
 
         const remove = document.createElement('button');
@@ -48,7 +50,6 @@ export class HistoryView {
         });
 
         item.append(body, remove);
-        item.addEventListener('click', () => this.onSelect(text));
         return item;
     }
 }
