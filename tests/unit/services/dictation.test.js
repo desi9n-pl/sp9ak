@@ -384,3 +384,37 @@ describe('network trouble', () => {
         expect(recognition.starts).toBe(1);
     });
 });
+
+describe('loudness capitals', () => {
+    const setup = (loud, enabled = true) => {
+        const editor = new FakeEditor();
+        const recognition = new FakeRecognition();
+        const tracker = { takeSegment: vi.fn(() => loud) };
+        const dictation = new Dictation({
+            editor,
+            createRecognition: () => recognition,
+            loudness: { tracker, enabled: () => enabled },
+        });
+        dictation.start();
+        return { editor, recognition, tracker };
+    };
+
+    it('writes a loud final phrase in capitals', () => {
+        const { editor, recognition } = setup(true);
+        recognition.say('to jest głośno');
+        expect(editor.value).toBe('TO JEST GŁOŚNO ');
+    });
+
+    it('leaves a normal phrase alone', () => {
+        const { editor, recognition } = setup(false);
+        recognition.say('to jest cicho');
+        expect(editor.value).toBe('to jest cicho ');
+    });
+
+    it('keeps learning but writes no capitals when the option is off', () => {
+        const { editor, recognition, tracker } = setup(true, false);
+        recognition.say('głośno');
+        expect(tracker.takeSegment).toHaveBeenCalled();
+        expect(editor.value).toBe('głośno ');
+    });
+});

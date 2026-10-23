@@ -253,6 +253,10 @@ Zależności Pythona (`gi`, `python-xlib`) są potrzebne tylko do ikony w trayu 
 
 ---
 
+## WIELKIE LITERY dla głośniejszych fraz
+
+Chip **Aa** na dolnym pasku (domyślnie wyłączony) włącza analizę głośności głosu. Aplikacja uczy się Twojego zwykłego poziomu (po kilku pierwszych frazach), a fraza wypowiedziana wyraźnie głośniej (ok. 1,5× średniej) zostanie zapisana wielkimi literami. Rozpoznawanie działa na całych frazach, nie na pojedynczych słowach.
+
 ## Globalny skrót systemowy (X11)
 
 Ikona w trayu nasłuchuje globalnego skrótu **Ctrl+F11** (działa nawet gdy okno jest schowane lub na innym pulpicie):
