@@ -255,6 +255,8 @@ Zależności Pythona (`gi`, `python-xlib`) są potrzebne tylko do ikony w trayu 
 
 ## Instalacja w systemie (pakiet .deb)
 
+To dodatkowa, opcjonalna możliwość. Aplikację nadal można po prostu sklonować i uruchomić przez `./sp9ak.sh` (Krok 4), bez instalowania czegokolwiek w systemie; wtedy profil i historia zostają w katalogu projektu. Pakiet jest dla osób, które wolą uruchamiać aplikację z menu systemowego zamiast z terminala.
+
 ```bash
 packaging/build-deb.sh            # tworzy dist/sp9ak_1.0.0_all.deb
 sudo apt install ./dist/sp9ak_1.0.0_all.deb
