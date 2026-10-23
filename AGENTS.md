@@ -16,6 +16,8 @@ Zasady pracy nad projektem sp9ak (dla ludzi i agentów AI). `CLAUDE.md` tylko im
 - Nie wypychamy ani nie scalamy bez wyraźnej zgody właściciela repozytorium.
 - Wyjątek: początkowe utworzenie `dev` i tego pliku.
 
+Pełny opis procesu dla współautorów: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Commity
 
 - Wiadomości po angielsku, tryb rozkazujący, krótki wiersz tytułowy (np. `Add .deb package ...`).
@@ -39,3 +41,14 @@ npm run lint        # eslint + ruff
   (np. pakiet `.deb`) jest wyłącznie dodatkiem, nigdy wymogiem.
 - Frontend bez bundlera, moduły ES; logika bez DOM w `web/js/core/`, cienkie widoki w `web/js/ui/`.
 - Nowy kod pisz w stylu otoczenia (nazewnictwo, gęstość komentarzy) i dodawaj do niego testy.
+
+## Dodatkowo dla agentów AI
+
+- Przed pracą: `git switch dev && git pull`, potem własna gałąź (`feature/`, `fix/`, `docs/`). Nigdy nie pracuj na `dev` ani `main`.
+- Commituj tylko na prośbę użytkownika. Nie rób `push`, nie otwieraj ani nie scalaj PR-ów bez jego wyraźnej zgody.
+- Nie używaj `--force`, `--no-verify`, `reset --hard` ani nie kasuj gałęzi bez wyraźnej zgody.
+- Zmieniaj tylko to, o co poproszono. Zauważone niepowiązane problemy zgłoś, nie naprawiaj ich przy okazji.
+- Uruchom `npm run lint` i `npm test` (oraz `npm run test:py`, gdy ruszasz Pythona) i zgłaszaj wyniki zgodnie z prawdą, także nieudane.
+- Testy E2E uruchamiaj, gdy zmiana dotyka interfejsu; nie twórz testów zależnych od mikrofonu, sieci ani kluczy API.
+- Nie dotykaj ani nie commituj `sessions.json`, `chrome-profile/`, `dist/`, `coverage/`, sekretów.
+- Gdy zmiana zmienia zachowanie opisane w README, zaktualizuj README w tym samym PR-ze.
