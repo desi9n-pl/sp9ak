@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=sp9ak
+GenericName=Dyktowanie głosowe
+Comment=Dyktowanie po polsku z korektą AI
+Exec=sp9ak
+Icon=sp9ak
+Terminal=false
+Categories=Office;Utility;
+Keywords=dyktowanie;mowa;głos;dictation;speech;
+StartupNotify=false

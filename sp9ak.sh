@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 PORT=17823
 PIDFILE="/tmp/sp9ak.pid"
-PROFILE="$DIR/chrome-profile"
+# Dane użytkownika (profil Chrome, historia sesji): domyślnie w katalogu projektu,
+# w pakiecie .deb ustawiane na ~/.local/share/sp9ak (SP9AK_DATA), bo /usr jest tylko do odczytu.
+DATA="${SP9AK_DATA:-$DIR}"
+mkdir -p "$DATA"
+PROFILE="$DATA/chrome-profile"
+export SP9AK_SESSIONS="${SP9AK_SESSIONS:-$DATA/sessions.json}"
 
 # Sprawdź zależności
 if ! command -v python3 &>/dev/null; then
