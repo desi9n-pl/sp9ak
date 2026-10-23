@@ -135,7 +135,25 @@ export class Dictation extends Emitter {
 
     /** The user typed while dictating: the recognizer's text now continues from the caret. */
     #reanchor() {
-        if (this.#listening) this.span.begin(this.#editor.caret);
+        if (!this.#listening) return;
+        const caret = this.#dropInterim(this.#editor.caret);
+        this.#editor.setCaret(caret);
+        this.span.begin(caret);
+    }
+
+    /**
+     * The unfinished phrase is no longer owned by any span once the user edits, yet the recognizer
+     * will report it again from the new anchor; leaving it in the field would write it twice.
+     * Returns the caret, moved back if the phrase stood before it.
+     */
+    #dropInterim(caret) {
+        const { interim, start } = this.span;
+        if (!interim) return caret;
+        const value = this.#editor.value;
+        const at = value.indexOf(interim, start);
+        if (at === -1) return caret;
+        this.#editor.setText(value.slice(0, at) + value.slice(at + interim.length));
+        return at < caret ? caret - interim.length : caret;
     }
 
     #onResult(event) {
