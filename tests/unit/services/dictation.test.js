@@ -134,6 +134,15 @@ describe('writing speech into the field', () => {
         expect(editor.value).toBe('raz ręcznie dwa ');
     });
 
+    it('drops the unfinished phrase when the user presses Enter, so it is not written twice', () => {
+        dictation.start();
+        recognition.say('raz');
+        recognition.say('dwa', false);
+        editor.type('\n');
+        recognition.say('dwa');
+        expect(editor.value).toBe('raz \ndwa ');
+    });
+
     it('does not follow typing when not dictating', () => {
         editor.type('tekst');
         dictation.start();
