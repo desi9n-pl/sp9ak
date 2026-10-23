@@ -21,6 +21,7 @@ import { InstallModal } from './ui/install-modal.js';
 import { LanguageToggle } from './ui/language-toggle.js';
 import { LogsView } from './ui/logs-view.js';
 import { PanelManager } from './ui/panels.js';
+import { PinButton } from './ui/pin-button.js';
 import { PunctuationToggle } from './ui/punctuation-toggle.js';
 import { SemanticView } from './ui/semantic-view.js';
 import { installShortcuts } from './ui/shortcuts.js';
@@ -69,6 +70,7 @@ new DictationButton({ dictation, status });
 const punctuation = new PunctuationToggle({ storage, ai });
 const emptyState = new EmptyState({ editor, dictation });
 const copyButton = new CopyButton({ editor, corrected });
+new PinButton({ toast }).load();
 
 new HistoryView({
     history,

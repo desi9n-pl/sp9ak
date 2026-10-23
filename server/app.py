@@ -6,6 +6,8 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from desktop import x11
+
 from .ai_providers import ProviderError, complete
 from .state import HotkeySignal, SessionStore
 
@@ -15,9 +17,10 @@ DEFAULT_PORT = 17823
 
 
 class Handler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, store, hotkey, **kwargs):
+    def __init__(self, *args, store, hotkey, window, **kwargs):
         self.store = store
         self.hotkey = hotkey
+        self.window = window
         super().__init__(*args, directory=str(WEB_DIR), **kwargs)
 
     # ── odpowiedzi ───────────────────────────────────────────────
@@ -56,6 +59,8 @@ class Handler(SimpleHTTPRequestHandler):
             self._send_json(self.hotkey.snapshot())
         elif self.path == '/api/sessions':
             self._send_json(self.store.load())
+        elif self.path == '/api/window':
+            self._send_json(self.window.window_state())
         else:
             super().do_GET()
 
@@ -64,6 +69,7 @@ class Handler(SimpleHTTPRequestHandler):
             '/api/hotkey': self._post_hotkey,
             '/api/sessions': self._post_sessions,
             '/api/ai': self._post_ai,
+            '/api/window': self._post_window,
         }
         handler = routes.get(self.path)
         if handler is None:
@@ -86,6 +92,12 @@ class Handler(SimpleHTTPRequestHandler):
         self.store.save(body)
         self._send_empty()
 
+    def _post_window(self, body):
+        if not isinstance(body, dict) or not isinstance(body.get('alwaysOnTop'), bool):
+            self._send_error_json(400, 'Oczekiwano pola alwaysOnTop (true/false)')
+            return
+        self._send_json(self.window.set_always_on_top(body['alwaysOnTop']))
+
     def _post_ai(self, body):
         try:
             text = complete(
@@ -101,9 +113,9 @@ class Handler(SimpleHTTPRequestHandler):
         """Ciche logi – serwer działa w tle launchera."""
 
 
-def create_server(port, sessions_path=None):
+def create_server(port, sessions_path=None, window=x11):
     sessions_path = sessions_path or os.environ.get('SP9AK_SESSIONS') or ROOT / 'sessions.json'
-    handler = partial(Handler, store=SessionStore(sessions_path), hotkey=HotkeySignal())
+    handler = partial(Handler, store=SessionStore(sessions_path), hotkey=HotkeySignal(), window=window)
     return ThreadingHTTPServer(('127.0.0.1', port), handler)
 
 

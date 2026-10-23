@@ -5,6 +5,7 @@ import { LanguageToggle } from '../../../web/js/ui/language-toggle.js';
 import { PunctuationToggle } from '../../../web/js/ui/punctuation-toggle.js';
 import { installShortcuts } from '../../../web/js/ui/shortcuts.js';
 import { watchConnectivity } from '../../../web/js/ui/connectivity.js';
+import { PinButton } from '../../../web/js/ui/pin-button.js';
 import { EmptyState } from '../../../web/js/ui/empty-state.js';
 import { DictationButton } from '../../../web/js/ui/dictation-button.js';
 import { Editor } from '../../../web/js/ui/editor.js';
@@ -209,5 +210,40 @@ describe('DictationButton', () => {
         expect($('dictBtn').disabled).toBe(true);
         expect(status.set).toHaveBeenCalledWith(expect.stringContaining('nie obsługuje'));
         expect($('kbdHint').hidden).toBe(true);
+    });
+});
+
+describe('PinButton', () => {
+    const reply = payload => vi.fn().mockResolvedValue({ json: async () => payload });
+
+    it('stays hidden where pinning is not supported', async () => {
+        const pin = new PinButton({ toast: { show: vi.fn() }, fetchFn: reply({ supported: false, alwaysOnTop: false }) });
+        await pin.load();
+        expect($('pinBtn').hidden).toBe(true);
+    });
+
+    it('shows the current state once the server reports support', async () => {
+        const pin = new PinButton({ toast: { show: vi.fn() }, fetchFn: reply({ supported: true, alwaysOnTop: true }) });
+        await pin.load();
+        expect($('pinBtn').hidden).toBe(false);
+        expect($('pinBtn').classList.contains('active')).toBe(true);
+        expect($('pinBtn').getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('asks the server for the opposite state on click', async () => {
+        const fetchFn = reply({ supported: true, alwaysOnTop: false });
+        const pin = new PinButton({ toast: { show: vi.fn() }, fetchFn });
+        await pin.load();
+        fetchFn.mockResolvedValue({ json: async () => ({ supported: true, alwaysOnTop: true }) });
+        await pin.toggle();
+        expect(JSON.parse(fetchFn.mock.lastCall[1].body)).toEqual({ alwaysOnTop: true });
+        expect(pin.pinned).toBe(true);
+    });
+
+    it('tells the user when the request fails', async () => {
+        const toast = { show: vi.fn() };
+        const pin = new PinButton({ toast, fetchFn: vi.fn().mockRejectedValue(new Error('down')) });
+        await pin.toggle();
+        expect(toast.show).toHaveBeenCalled();
     });
 });

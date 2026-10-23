@@ -95,6 +95,22 @@ class HotkeyTest(ServerTestCase):
         self.assertEqual(self.snapshot()['action'], 'start')
 
 
+class WindowTest(ServerTestCase):
+    def test_reports_the_window_state(self):
+        with mock.patch.object(app.x11, 'window_state', return_value={'supported': True, 'alwaysOnTop': False}):
+            self.assertEqual(self.json_request('GET', '/api/window'), (200, {'supported': True, 'alwaysOnTop': False}))
+
+    def test_post_pins_the_window(self):
+        with mock.patch.object(app.x11, 'set_always_on_top', return_value={'supported': True, 'alwaysOnTop': True}) as pin:
+            status, payload = self.json_request('POST', '/api/window', {'alwaysOnTop': True})
+        pin.assert_called_once_with(True)
+        self.assertEqual((status, payload['alwaysOnTop']), (200, True))
+
+    def test_rejects_a_non_boolean_flag(self):
+        for body in ({'alwaysOnTop': 'yes'}, {}, []):
+            self.assertEqual(self.json_request('POST', '/api/window', body)[0], 400)
+
+
 class AiProxyTest(ServerTestCase):
     def test_returns_the_model_text(self):
         with mock.patch.object(app, 'complete', return_value='Cześć') as complete:
