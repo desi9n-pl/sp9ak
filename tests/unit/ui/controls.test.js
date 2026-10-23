@@ -222,6 +222,19 @@ describe('PinButton', () => {
         expect($('pinBtn').hidden).toBe(true);
     });
 
+    it('keeps asking until the window manager lists the window', async () => {
+        vi.useFakeTimers();
+        const fetchFn = vi.fn()
+            .mockResolvedValueOnce({ json: async () => ({ supported: false, alwaysOnTop: false }) })
+            .mockResolvedValue({ json: async () => ({ supported: true, alwaysOnTop: false }) });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        expect($('pinBtn').hidden).toBe(true);
+        await vi.advanceTimersByTimeAsync(1000);
+        expect($('pinBtn').hidden).toBe(false);
+        expect(fetchFn).toHaveBeenCalledTimes(2);
+        vi.useRealTimers();
+    });
+
     it('shows the current state once the server reports support', async () => {
         const pin = new PinButton({ toast: { show: vi.fn() }, fetchFn: reply({ supported: true, alwaysOnTop: true }) });
         await pin.load();

@@ -1,5 +1,8 @@
 import { byId } from './dom.js';
 
+const RETRY_MS = 1000;
+const MAX_ATTEMPTS = 15;
+
 /** Tiny toolbar button keeping the window above all others; hidden where the desktop cannot do it. */
 export class PinButton {
     #fetch;
@@ -12,14 +15,19 @@ export class PinButton {
         this.button.addEventListener('click', () => this.toggle());
     }
 
-    /** Asks the server whether pinning works here and what the current state is. */
-    async load() {
+    /**
+     * Asks the server whether pinning works here and what the current state is. The window
+     * manager may not list the window yet right after launch, so unsupported answers are retried.
+     */
+    async load(attempt = 1) {
         try {
             const state = await (await this.#fetch('/api/window', { cache: 'no-store' })).json();
             this.#render(state);
+            if (state.supported) return;
         } catch {
-            // server unavailable: the button stays hidden
+            // server unavailable: try again below
         }
+        if (attempt < MAX_ATTEMPTS) setTimeout(() => this.load(attempt + 1), RETRY_MS);
     }
 
     async toggle() {
