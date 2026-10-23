@@ -263,6 +263,7 @@ npm run coverage          # j.w. z raportem pokrycia
 npm run test:py           # testy Pythona
 npm run test:e2e          # scenariusze w prawdziwym Chrome (wymaga /usr/bin/google-chrome lub CHROME_PATH)
 npm run test:monkey       # losowe klikanie (gremlins.js); GREMLINS_SEEDS="1,2" GREMLINS_ACTIONS=2000
+npm run test:layout       # losowe klikanie w kilku rozmiarach okna + kontrola układu (gremlins.js)
 npm run lint              # eslint + ruff
 npm run test:all          # wszystko powyżej poza lintem
 ```

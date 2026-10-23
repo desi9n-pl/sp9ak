@@ -8,7 +8,8 @@
     "test:py": "python3 -m unittest discover -s tests/python -t .",
     "test:e2e": "node tests/e2e/ext-ai.e2e.mjs && node tests/e2e/regression.e2e.mjs && node tests/e2e/offline.e2e.mjs && node tests/e2e/ui.e2e.mjs",
     "test:monkey": "node tests/e2e/monkey.e2e.mjs",
-    "test:all": "npm test && npm run test:py && npm run test:e2e && npm run test:monkey",
+    "test:layout": "node tests/e2e/layout.e2e.mjs",
+    "test:all": "npm test && npm run test:py && npm run test:e2e && npm run test:monkey && npm run test:layout",
     "lint": "eslint . && ruff check ."
   },
   "devDependencies": {

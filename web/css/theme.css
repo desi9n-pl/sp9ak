@@ -4,10 +4,11 @@
     --surface: #1c1c21;
     --border: #2e2e36;
     --text: #e4e4e7;
-    --muted: #71717a;
-    --faint: #52525b;
+    --muted: #a1a1aa;
+    --faint: #8e8e98;
     --accent: #4f46e5;
     --accent-h: #4338ca;
+    --accent-text: #818cf8;  /* accent for text and thin lines: --accent itself is too dark on the dark background */
     --caret: #818cf8;
     --btn-bg: #27272a;
     --btn-text: #a1a1aa;
@@ -25,9 +26,10 @@
     --surface: #ffffff;
     --border: #e5e7eb;
     --text: #111827;
-    --muted: #6b7280;
-    --faint: #9ca3af;
+    --muted: #5f6673;
+    --faint: #6b7280;
     --caret: #4f46e5;
+    --accent-text: #4f46e5;
     --btn-bg: #f3f4f6;
     --btn-text: #374151;
     --btn-border: #d1d5db;
@@ -40,11 +42,12 @@
     --surface: #ede7d9;
     --border: #d4c9b6;
     --text: #3b2e20;
-    --muted: #8a7060;
-    --faint: #b0a090;
+    --muted: #6e5848;
+    --faint: #735f4f;
     --accent: #7c5c2e;
     --accent-h: #6b4e26;
     --caret: #7c5c2e;
+    --accent-text: #7c5c2e;
     --btn-bg: #e8e0d0;
     --btn-text: #5c4030;
     --btn-border: #c8baa8;
