@@ -253,6 +253,15 @@ Zależności Pythona (`gi`, `python-xlib`) są potrzebne tylko do ikony w trayu 
 
 ---
 
+## Instalacja w systemie (pakiet .deb)
+
+```bash
+packaging/build-deb.sh            # tworzy dist/sp9ak_1.0.0_all.deb
+sudo apt install ./dist/sp9ak_1.0.0_all.deb
+```
+
+Aplikacja pojawi się w menu systemowym w kategorii **Biuro** (polecenie `sp9ak`). Chrome Beta (kroki 1–3) instaluje się osobno. Profil Chrome i historia sesji są w `~/.local/share/sp9ak`. Usunięcie: `sudo apt remove sp9ak`.
+
 ## Globalny skrót systemowy (X11)
 
 Ikona w trayu nasłuchuje globalnego skrótu **Ctrl+F11** (działa nawet gdy okno jest schowane lub na innym pulpicie):
