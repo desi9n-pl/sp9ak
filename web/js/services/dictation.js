@@ -202,7 +202,9 @@ export class Dictation extends Emitter {
 
     #finish() {
         this.span.commitInterim();
-        const raw = this.span.final.endsWith(' ') ? this.span.final : `${this.span.final} `;
+        // nothing was said: a bare start/stop must not leave a space behind
+        const { final } = this.span;
+        const raw = final === '' || final.endsWith(' ') ? final : `${final} `;
         this.#write(raw, '');
         this.emit('stopped');
         this.emit('finished', { text: this.span.final });
