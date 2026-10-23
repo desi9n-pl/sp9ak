@@ -8,6 +8,7 @@ const REFRESH_DELAY_MS = 3000;
 export class CorrectedPane {
     #lastSource = '';
     #timer = null;
+    #pending = null;
 
     constructor({ toast }) {
         this.section = byId('correctedSection');
@@ -45,8 +46,17 @@ export class CorrectedPane {
     followEditor(editor, render) {
         editor.on('change', () => {
             clearTimeout(this.#timer);
-            this.#timer = setTimeout(() => this.#refresh(editor, render), REFRESH_DELAY_MS);
+            this.#pending = () => this.#refresh(editor, render);
+            this.#timer = setTimeout(() => this.flush(), REFRESH_DELAY_MS);
         });
+    }
+
+    /** Renders a manual edit that is still waiting for its delay, so readers never see the old version. */
+    flush() {
+        clearTimeout(this.#timer);
+        const refresh = this.#pending;
+        this.#pending = null;
+        refresh?.();
     }
 
     #refresh(editor, render) {
