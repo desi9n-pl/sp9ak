@@ -231,6 +231,17 @@ describe('lifecycle', () => {
         expect(editor.focus).toHaveBeenCalled();
     });
 
+    it('adds no space when stopped without anything dictated', () => {
+        editor.value = 'tekst';
+        editor.caret = 5;
+        for (let i = 0; i < 3; i++) {
+            dictation.start();
+            dictation.stop();
+            recognition.end();
+        }
+        expect(editor.value).toBe('tekst');
+    });
+
     it('keeps interim text that never became final', () => {
         dictation.start();
         recognition.say('urwane', false);
