@@ -11,7 +11,7 @@
     align-items: center;
     gap: 7px;
 }
-.bar-bottom { justify-content: flex-end; }
+.bar-bottom { flex-wrap: wrap; justify-content: flex-end; }   /* narrow windows: second row instead of buttons cut off on the left */
 
 .status {
     flex: 1;
@@ -104,8 +104,12 @@
     gap: 4px;
     margin-bottom: -6px;
 }
-.toolbar:not(:has(button:not([hidden]))) { display: none; }
+.toolbar:not(.pending):not(:has(button:not([hidden]))) { display: none; }
+/* Until the pin button settles (it may appear seconds after launch) keep its row reserved, so the editor does not jump */
+.toolbar.pending { min-height: 24px; }
 .btn-tiny {
+    box-sizing: border-box;
+    height: 24px;
     gap: 0;
     padding: 3px 5px;
     border: 1px solid transparent;

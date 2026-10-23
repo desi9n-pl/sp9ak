@@ -235,6 +235,28 @@ describe('PinButton', () => {
         vi.useRealTimers();
     });
 
+    it('reserves the toolbar row until the answer is final', async () => {
+        vi.useFakeTimers();
+        const fetchFn = vi.fn()
+            .mockResolvedValueOnce({ json: async () => ({ supported: false, alwaysOnTop: false }) })
+            .mockResolvedValue({ json: async () => ({ supported: true, alwaysOnTop: false }) });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        expect($('toolbar').classList.contains('pending')).toBe(true);
+        await vi.advanceTimersByTimeAsync(1000);
+        expect($('toolbar').classList.contains('pending')).toBe(false);
+        vi.useRealTimers();
+    });
+
+    it('releases the reserved row when pinning never becomes available', async () => {
+        vi.useFakeTimers();
+        const fetchFn = reply({ supported: false, alwaysOnTop: false });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        await vi.advanceTimersByTimeAsync(20000);
+        expect($('toolbar').classList.contains('pending')).toBe(false);
+        expect($('pinBtn').hidden).toBe(true);
+        vi.useRealTimers();
+    });
+
     it('shows the current state once the server reports support', async () => {
         const pin = new PinButton({ toast: { show: vi.fn() }, fetchFn: reply({ supported: true, alwaysOnTop: true }) });
         await pin.load();
