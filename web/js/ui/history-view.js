@@ -42,6 +42,7 @@ export class HistoryView {
         const remove = document.createElement('button');
         remove.className = 'btn-bare sess-del';
         remove.title = 'Usuń sesję';
+        remove.setAttribute('aria-label', 'Usuń sesję');
         remove.textContent = '×';
         remove.addEventListener('click', event => {
             event.stopPropagation();
