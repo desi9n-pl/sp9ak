@@ -124,6 +124,16 @@ Skrypt automatycznie:
 - otwiera aplikację w oknie Chrome Beta z izolowanym profilem
 - po zamknięciu okna zatrzymuje serwer
 
+### Zgoda na mikrofon
+
+Przy pierwszym uruchomieniu (a także po usunięciu katalogu `chrome-profile`) Chrome zapyta o dostęp do mikrofonu:
+
+![Okno z prośbą o pozwolenie na użycie mikrofonu](docs/zgoda-mikrofon.png)
+
+Wybierz **Zezwalaj podczas odwiedzania witryny** — zgoda zostanie zapamiętana w profilu aplikacji i pytanie nie pojawi się ponownie. Opcja „Zezwól tym razem" wymusza ponowne pytanie przy każdym uruchomieniu, a „Nigdy nie zezwalaj" całkowicie blokuje dyktowanie.
+
+Jeśli odmówiono zgody przez pomyłkę, zobacz [Rozwiązywanie problemów](#dyktowanie-nie-działa-mikrofon-zablokowany).
+
 ---
 
 ## Krok 5 — Weryfikacja działania AI w aplikacji
@@ -158,6 +168,17 @@ Aby zobaczyć szczegółowe logi diagnostyczne: kliknij ikonę **☰** (ustawien
 
 ### Aplikacja czeka długo z komunikatem "Inicjalizacja modelu…"
 Przy pierwszym uruchomieniu z nowym profilem Chrome rejestruje model — to normalne i trwa do kilku minut. Poczekaj, aż wskaźnik ✦ zmieni kolor na zielony.
+
+### Dyktowanie nie działa (mikrofon zablokowany)
+Prawdopodobnie wybrano „Nigdy nie zezwalaj" w oknie z prośbą o dostęp do mikrofonu. Okno aplikacji nie ma paska adresu, więc ustawienie zmienisz tak:
+1. Zamknij okno sp9ak.
+2. Otwórz Chrome Beta z profilem aplikacji i wejdź na `chrome://settings/content/microphone`:
+   ```bash
+   google-chrome-beta --user-data-dir="$PWD/chrome-profile" chrome://settings/content/microphone
+   ```
+3. Usuń `http://localhost:17823` z listy zablokowanych (lub zmień na „Zezwalaj"), zamknij Chrome i uruchom `./sp9ak.sh`.
+
+Alternatywnie usuń katalog `chrome-profile` — przy następnym starcie pytanie pojawi się ponownie (model Gemini Nano zostanie wtedy zarejestrowany od nowa, patrz niżej).
 
 ### Błąd "port 17823 jest zajęty"
 Inny proces używa portu. Sprawdź i zakończ go:
