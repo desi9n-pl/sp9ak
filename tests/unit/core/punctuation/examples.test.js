@@ -29,9 +29,9 @@ describe('punctuate: line breaks (Enter while dictating)', () => {
         // regression: a break after a full stop is not turned into a space
         ['pierwsza linia.\ndruga linia', 'Pierwsza linia.\nDruga linia.'],
         ['to działa. a to nie\ndruga linia', 'To działa. A to nie\nDruga linia.'],
-        // regression (screenshot): the second sentence is not doubled and keeps its line
-        ['przygotować się porządnie na\n TC marketingowe', 'Przygotować się porządnie na\n TC marketingowe'],
-        ['przygotować się porządnie na\n tc marketingowe', 'Przygotować się porządnie na\n Tc marketingowe'],
+        // regression (screenshot): a phrase finished before Enter stays in one line
+        ['przygotować się porządnie na TC marketingowe\nnastępna linia', 'Przygotować się porządnie na TC marketingowe\nNastępna linia'],
+        ['przygotować się porządnie na TC marketingowe\n', 'Przygotować się porządnie na TC marketingowe'],
     ])('%j -> %j', (input, expected) => {
         expect(punctuate(input, 'pl-PL')).toBe(expected);
     });
