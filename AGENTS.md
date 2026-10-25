@@ -11,6 +11,11 @@ Zasady pracy nad projektem sp9ak (dla ludzi i agentów AI). `CLAUDE.md` tylko im
   - `fix/<opis>` – poprawka błędu,
   - `docs/<opis>` – sama dokumentacja.
 - Jedna gałąź = jeden temat. Niepowiązane zmiany idą do osobnych branchy i osobnych commitów.
+- Temat to spójna funkcja lub obszar (np. „obsługa klawiaturą", „kontrast i rozmiary"), a nie pojedyncza linijka.
+  Nie tworzymy gałęzi dla zmiany na 2–3 linie: kumulujemy powiązane zmiany w jednej gałęzi, w osobnych commitach,
+  razem z ich testami. Zmiany w tych samych plikach lub fragmentach (np. ten sam blok `index.html`) trzymamy razem,
+  bo osobne gałęzie kończą się konfliktami i zbędnym scalaniem. Kontrola: jeśli dwie gałęzie trzeba scalać w określonej
+  kolejności albo dotykają tych samych linii, to prawdopodobnie powinny być jedną.
 - Pull request kierujemy do `dev` (nie do `main`). Przed PR-em muszą przechodzić `npm run lint` i `npm test`
   (a przy zmianach Pythona `npm run test:py`).
 - Nie wypychamy ani nie scalamy bez wyraźnej zgody właściciela repozytorium.

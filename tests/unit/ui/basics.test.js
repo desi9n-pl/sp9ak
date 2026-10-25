@@ -6,7 +6,7 @@ import { Toast } from '../../../web/js/ui/toast.js';
 import { StatusBar } from '../../../web/js/ui/status-bar.js';
 import { InstallModal } from '../../../web/js/ui/install-modal.js';
 import { ThemePicker } from '../../../web/js/ui/theme-picker.js';
-import { $, click, mountPage } from './fixture.js';
+import { $, click, key, mountPage } from './fixture.js';
 
 beforeEach(mountPage);
 
@@ -87,12 +87,11 @@ describe('Toast', () => {
 });
 
 describe('StatusBar', () => {
-    it('shows text and hides the shortcut hint while active', () => {
+    it('shows text and the recording dot while active', () => {
         const status = new StatusBar();
         status.set('Słucham…', true);
         expect($('msg').textContent).toBe('Słucham…');
         expect($('dot').classList.contains('on')).toBe(true);
-        expect($('kbdHint').hidden).toBe(true);
     });
 
     it('returns to idle', () => {
@@ -101,7 +100,6 @@ describe('StatusBar', () => {
         status.idle();
         expect($('msg').textContent).toBe('Gotowy');
         expect($('dot').classList.contains('on')).toBe(false);
-        expect($('kbdHint').hidden).toBe(false);
     });
 });
 
@@ -119,6 +117,31 @@ describe('InstallModal', () => {
         modal.open();
         modal.close();
         expect(isOpen()).toBe(false);
+    });
+
+    it('is a labelled modal dialog that takes the focus and returns it on close', () => {
+        new InstallModal();
+        const dialog = $('installModal').querySelector('.modal');
+        expect(dialog.getAttribute('role')).toBe('dialog');
+        expect(dialog.getAttribute('aria-modal')).toBe('true');
+        expect($(dialog.getAttribute('aria-labelledby')).textContent).toContain('Gemini Nano');
+        $('installGeminiBtn').focus();
+        click($('installGeminiBtn'));
+        expect(document.activeElement).toBe(dialog);
+        click($('installModalClose'));
+        expect(document.activeElement).toBe($('installGeminiBtn'));
+    });
+
+    it('keeps Tab and Shift+Tab inside the dialog', () => {
+        new InstallModal();
+        click($('installGeminiBtn'));
+        const dialog = $('installModal').querySelector('.modal');
+        const items = [...dialog.querySelectorAll('button, [tabindex]:not([tabindex="-1"])')];
+        items.at(-1).focus();
+        expect(key(items.at(-1), { key: 'Tab' }).defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(items[0]);
+        expect(key(dialog, { key: 'Tab', shiftKey: true }).defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(items.at(-1));
     });
 
     it('stays open when the dialog itself is clicked', () => {

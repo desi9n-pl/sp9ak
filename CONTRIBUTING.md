@@ -8,10 +8,60 @@ przeprowadzić zmianę od pomysłu do pull requesta. Agenci AI stosują te same 
 
 Wymagania: Linux, Node.js 20+, Python 3.12+ (`ruff`), Chrome do testów E2E.
 
+### Node.js
+
 ```bash
 npm install
-pip install ruff
 ```
+
+### Python (tylko `ruff` do lintu)
+
+Aplikacja działa na samej bibliotece standardowej Pythona, więc nic z Pythona nie jest potrzebne do jej uruchomienia.
+Do `npm run lint` potrzebny jest tylko `ruff`. Zainstaluj go w **środowisku wirtualnym** (`venv`), czyli w osobnym
+katalogu `.venv/` w projekcie. Nie instaluj go globalnie: nowe Ubuntu/Debian odrzuci `pip install` w systemowym
+Pythonie z błędem `externally-managed-environment`, a venv i tak nie zaśmieca systemu.
+
+1. Utwórz venv (jednorazowo, w katalogu głównym repo):
+
+   ```bash
+   python3 -m venv --system-site-packages .venv
+   ```
+
+   Przełącznik `--system-site-packages` jest potrzebny, żeby venv widział pakiety systemowe (`python-xlib`, `gi`),
+   z których korzystają testy Pythona. Bez niego `npm run test:py` przy aktywnym venv zgłosi
+   `No module named 'Xlib'`.
+
+   Gdy komenda zgłasza brak `ensurepip` lub `python3-venv`: `sudo apt install python3-venv` i powtórz.
+
+2. Aktywuj venv. **Robisz to w każdym nowym terminalu**, bo aktywacja dotyczy tylko jednego okna terminala:
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+   Na początku linii pojawi się `(.venv)`. Sprawdź: `which python` ma wskazywać na `.venv/bin/python` w projekcie.
+   Dla basha i zsh komenda jest ta sama.
+
+3. Zainstaluj `ruff` (jednorazowo, przy aktywnym venv):
+
+   ```bash
+   pip install ruff
+   ruff --version
+   ```
+
+4. Uruchamiaj lint przy aktywnym venv:
+
+   ```bash
+   npm run lint        # eslint + ruff
+   ```
+
+   `npm run lint` woła `ruff` po samej nazwie, więc bez aktywnego venv kończy się błędem `ruff: not found`.
+   Bez aktywacji zadziała `./.venv/bin/ruff check .`.
+
+5. Wyłączenie venv w danym terminalu: `deactivate`.
+
+W PhpStormie wskaż interpreter `.venv/bin/python` w ustawieniach projektu (Python Interpreter) albo aktywuj venv
+w jego terminalu. Katalog `.venv/` jest w `.gitignore` i nigdy nie trafia do repozytorium.
 
 Aplikacja ma działać po zwykłym `git clone` i `./sp9ak.sh`. Nic, co wymaga instalacji w systemie
 (np. pakiet `.deb`), nie może stać się warunkiem uruchomienia.
@@ -29,6 +79,11 @@ Aplikacja ma działać po zwykłym `git clone` i `./sp9ak.sh`. Nic, co wymaga in
 
 Każda zmiana ma własną gałąź odgałęzioną od aktualnego `dev`. Jedna gałąź = jeden temat;
 niepowiązane zmiany idą do osobnych gałęzi i osobnych commitów.
+
+Temat to spójna funkcja lub obszar (np. „obsługa klawiaturą", „kontrast i rozmiary"), nie pojedyncza
+linijka. Nie zakładamy gałęzi dla zmiany na 2–3 linie: powiązane zmiany kumulujemy w jednej gałęzi, w osobnych
+commitach i razem z testami. Gałęzie dotykające tych samych plików lub fragmentów (np. tego samego bloku
+`index.html`) są kosztowne w scalaniu, więc łączymy je w jedną. Poprawki i ich testy nie rozdzielamy.
 
 ```bash
 git switch dev && git pull
@@ -99,6 +154,9 @@ nie jest scalany.
 | Python (unittest) | `tests/python` | `npm run test:py` |
 | E2E (Playwright + Chrome) | `tests/e2e` | `npm run test:e2e` |
 | Losowe klikanie | `tests/e2e/monkey.e2e.mjs` | `npm run test:monkey` |
+| Układ okna (gremlins) | `tests/e2e/layout.e2e.mjs` | `npm run test:layout` |
+| Dostępność (pa11y) | `tests/quality/a11y.mjs` | `npm run test:a11y` |
+| Wydajność i jakość frontu (Lighthouse) | `tests/quality/lighthouse.mjs` | `npm run test:lighthouse` |
 
 Testy E2E używają atrapy `SpeechRecognition` i atrapy `/api/ai`, więc nie potrzebują mikrofonu,
 internetu ani kluczy API. Testy nigdy nie mogą zapisywać do prawdziwego `sessions.json`
@@ -106,7 +164,7 @@ internetu ani kluczy API. Testy nigdy nie mogą zapisywać do prawdziwego `sessi
 
 ## Czego nie commitować
 
-- `sessions.json` (prywatne treści dyktowania), `chrome-profile/`, `dist/`, `coverage/`, `node_modules/`.
+- `sessions.json` (prywatne treści dyktowania), `chrome-profile/`, `dist/`, `coverage/`, `node_modules/`, `.venv/`.
 - Kluczy API, tokenów i innych sekretów. Aplikacja ma działać lokalnie, bez wysyłania danych do chmury
   poza jawnie włączonym zewnętrznym AI.
 

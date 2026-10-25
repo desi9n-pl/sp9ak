@@ -54,7 +54,7 @@
     font-weight: 500;
 }
 .t-btn:hover { background: var(--btn-hover); }
-.t-btn.active { border-color: var(--accent); color: var(--accent); }
+.t-btn.active { border-color: var(--accent); color: var(--accent-text); }
 .swatch { width: 11px; height: 11px; flex-shrink: 0; border-radius: 50%; }
 .sw-light { background: #f0f0f0; border: 1.5px solid #d1d5db; }
 .sw-sepia { background: #e8d5b0; border: 1.5px solid #c8baa8; }
@@ -82,11 +82,11 @@
     background: var(--btn-bg);
     color: var(--text);
     font-size: 12px;
-    outline: none;
 }
 .ext-select { flex-shrink: 0; cursor: pointer; }
 .ext-input { flex: 1; min-width: 50px; }
-.ext-input:focus { border-color: var(--accent); }
+.ext-select:focus-visible,
+.ext-input:focus-visible { outline: none; border-color: var(--accent-text); box-shadow: var(--focus-halo); }
 .ext-check {
     display: flex;
     align-items: center;
@@ -116,13 +116,25 @@
     border: 1px solid var(--border);
     border-radius: 7px;
     background: var(--bg);
-    cursor: pointer;
     transition: border-color 0.15s;
 }
 .sess-item:hover { border-color: var(--accent); }
-.sess-body { flex: 1; min-width: 0; }
-.sess-time { margin-bottom: 2px; font-size: 10px; color: var(--faint); }
+.sess-item:has(.sess-body:focus-visible) { border-color: var(--accent-text); box-shadow: var(--focus-halo); }
+.sess-body:focus-visible { outline: none; }
+/* The whole row is one button that loads the session. */
+.sess-body {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-weight: 400;
+    text-align: left;
+}
+.sess-time { display: block; margin-bottom: 2px; font-size: 12px; color: var(--faint); }
 .sess-preview {
+    display: block;
     overflow: hidden;
     font-size: 12px;
     white-space: nowrap;
@@ -178,6 +190,7 @@
     transition: background 0.12s, border-color 0.12s;
 }
 .suspect-sug:hover { background: rgba(34, 197, 94, 0.26); border-color: rgba(34, 197, 94, 0.65); }
+.suspect-sug.accepted::before { content: '✓ '; }  /* not by colour alone */
 .suspect-sug.accepted {
     background: rgba(34, 197, 94, 0.22);
     border-color: var(--ok);
@@ -200,7 +213,7 @@
     background: var(--bg);
     color: var(--muted);
     font-family: Consolas, Menlo, Monaco, monospace;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-all;

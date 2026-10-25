@@ -11,8 +11,11 @@ export class PinButton {
         this.toast = toast;
         this.#fetch = fetchFn;
         this.button = byId('pinBtn');
+        this.toolbar = byId('toolbar');
         this.pinned = false;
         this.button.addEventListener('click', () => this.toggle());
+        // the window manager can change the state behind our back (title bar menu, keyboard shortcut)
+        window.addEventListener('focus', () => this.refresh());
     }
 
     /**
@@ -23,11 +26,22 @@ export class PinButton {
         try {
             const state = await (await this.#fetch('/api/window', { cache: 'no-store' })).json();
             this.#render(state);
-            if (state.supported) return;
+            if (state.supported) return this.#settle();
         } catch {
             // server unavailable: try again below
         }
         if (attempt < MAX_ATTEMPTS) setTimeout(() => this.load(attempt + 1), RETRY_MS);
+        else this.#settle();
+    }
+
+    /** Re-reads the real state once pinning is known to work here. */
+    async refresh() {
+        if (this.button.hidden) return;
+        try {
+            this.#render(await (await this.#fetch('/api/window', { cache: 'no-store' })).json());
+        } catch {
+            // keep what is shown
+        }
     }
 
     async toggle() {
@@ -41,6 +55,11 @@ export class PinButton {
         } catch {
             this.toast.show('Nie udało się zmienić przypięcia okna');
         }
+    }
+
+    /** The answer is final: stop reserving the toolbar row (it collapses when the button stays hidden). */
+    #settle() {
+        this.toolbar.classList.remove('pending');
     }
 
     #render({ supported, alwaysOnTop }) {

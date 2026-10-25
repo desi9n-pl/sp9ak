@@ -10,6 +10,8 @@ TYPICAL_FRAME = (1, 1, 23, 1)   # window-manager frame (left, right, top, bottom
 TOOL_TIMEOUT_S = 3
 PLACEMENT_RETRIES = 2
 SETTLE_DELAY_S = 0.15
+STATE_POLLS = 6            # the window manager applies a state change asynchronously
+STATE_POLL_DELAY_S = 0.08
 
 
 def run(*command):
@@ -27,6 +29,23 @@ def find_window():
         if len(fields) >= 9 and fields[8].strip() == WINDOW_TITLE and 'localhost' in fields[6].lower():
             return int(fields[0], 16)
     return None
+
+
+def retitle_loading_window():
+    """Gives Chrome's window its final title while the page is still loading.
+
+    Until the first response Chrome shows the address ("localhost…/index.html") in the title bar.
+    Returns True when such a window was found and renamed; Chrome later sets the same title itself.
+    """
+    for line in run('wmctrl', '-lGx').splitlines():
+        fields = line.split(None, 8)
+        if len(fields) < 9 or 'localhost' not in fields[6].lower():
+            continue
+        title = fields[8].strip().lower()
+        if title.startswith('localhost') and 'index.html' in title:
+            run('xdotool', 'set_window', '--name', WINDOW_TITLE, str(int(fields[0], 16)))
+            return True
+    return False
 
 
 def primary_monitor():
@@ -136,10 +155,14 @@ def window_state():
 
 
 def set_always_on_top(enabled):
-    """Pins or unpins the window above all others; returns the resulting state."""
+    """Pins or unpins the window above all others; returns the state the window manager really ended up in."""
     window = find_window()
     if window is not None:
         run('wmctrl', '-i', '-r', hex(window), '-b', f"{'add' if enabled else 'remove'},above")
+        for _ in range(STATE_POLLS):
+            if is_always_on_top(window) == enabled:
+                break
+            time.sleep(STATE_POLL_DELAY_S)
     return window_state()
 
 

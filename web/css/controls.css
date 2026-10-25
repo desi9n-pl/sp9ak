@@ -11,7 +11,7 @@
     align-items: center;
     gap: 7px;
 }
-.bar-bottom { justify-content: flex-end; }
+.bar-bottom { flex-wrap: wrap; justify-content: flex-end; }   /* narrow windows: second row instead of buttons cut off on the left */
 
 .status {
     flex: 1;
@@ -41,17 +41,6 @@
     50% { opacity: 0.2; }
 }
 
-.kbd-hint {
-    flex-shrink: 0;
-    padding: 1px 5px;
-    border: 1px solid var(--btn-border);
-    border-radius: 4px;
-    background: var(--btn-bg);
-    color: var(--faint);
-    font-size: 11px;
-    letter-spacing: 0.01em;
-}
-
 .lang-chip {
     display: inline-flex;
     align-items: center;
@@ -63,17 +52,18 @@
     color: var(--btn-text);
     font-size: 13px;
     font-weight: 600;
+    line-height: normal;
     letter-spacing: 0.03em;
     cursor: pointer;
     user-select: none;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .lang-chip:hover { background: var(--btn-hover); }
-.lang-chip.en { color: var(--accent); border-color: var(--accent); }
+.lang-chip.en { color: var(--accent-text); border-color: var(--accent); }
 
 /* The ✦ chip carries a small badge for the state of the AI model. */
-#punctToggle.active { color: var(--accent); border-color: var(--accent); }
-#punctToggle::after { margin-left: 2px; font-size: 9px; }
+#punctToggle.active { color: var(--accent-text); border-color: var(--accent); }
+#punctToggle::after { margin-left: 2px; font-size: 12px; }
 #punctToggle[data-ai="on"]::after { content: 'AI'; color: var(--ok); }
 #punctToggle[data-ai="dl"]::after { content: '↓'; color: var(--warn); }
 #punctToggle[data-ai="off"]::after { content: '⚠'; color: var(--danger); }
@@ -85,11 +75,10 @@
     gap: 2px;
 }
 .btn-kbd {
-    font-size: 7px;
+    font-size: 9px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.02em;
-    opacity: 0.7;
 }
 
 #newNoteBtn { min-width: 120px; justify-content: center; padding: 8px 12px; }
@@ -104,8 +93,12 @@
     gap: 4px;
     margin-bottom: -6px;
 }
-.toolbar:not(:has(button:not([hidden]))) { display: none; }
+.toolbar:not(.pending):not(:has(button:not([hidden]))) { display: none; }
+/* Until the pin button settles (it may appear seconds after launch) keep its row reserved, so the editor does not jump */
+.toolbar.pending { min-height: 24px; }
 .btn-tiny {
+    box-sizing: border-box;
+    height: 24px;
     gap: 0;
     padding: 3px 5px;
     border: 1px solid transparent;
@@ -113,5 +106,6 @@
     background: transparent;
     color: var(--muted);
 }
-.btn-tiny:hover { background: var(--btn-hover); color: var(--accent); }
-.btn-tiny.active { border-color: var(--accent); color: var(--accent); }
+.btn-tiny:hover { background: var(--btn-hover); color: var(--accent-text); }
+.btn-tiny.active { border-color: var(--accent); color: var(--accent-text); }
+.btn-tiny { justify-content: center; min-width: 24px; min-height: 24px; }

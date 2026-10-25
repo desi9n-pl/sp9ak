@@ -1,7 +1,7 @@
 /* The two text fields, the empty-state call to action and the spectrum canvas. */
 .ta-wrap {
     flex: 1;
-    min-height: 0;
+    min-height: 160px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -16,7 +16,7 @@
 .ta-label {
     flex-shrink: 0;
     padding: 0 4px;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -41,10 +41,9 @@ textarea {
     font-size: 15px;
     line-height: 1.65;
     resize: none;
-    outline: none;
-    transition: border-color 0.2s, background 0.25s, color 0.25s;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.25s, color 0.25s;
 }
-textarea:focus { border-color: var(--accent); }
+textarea:focus-visible { outline: none; border-color: var(--accent-text); box-shadow: var(--focus-halo); }
 textarea::placeholder { color: var(--faint); }
 #corrected { background: var(--bg); cursor: default; }
 
@@ -75,7 +74,7 @@ textarea::placeholder { color: var(--faint); }
 }
 .big-dict:hover { background: var(--accent-h); }
 .big-dict:active { transform: scale(0.97); }
-.big-dict kbd { font: inherit; font-size: 12px; font-weight: 500; opacity: 0.75; }
+.big-dict kbd { font: inherit; font-size: 13px; font-weight: 500; }
 
 .small-type {
     padding: 6px 16px;

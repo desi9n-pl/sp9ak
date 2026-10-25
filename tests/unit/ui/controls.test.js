@@ -209,7 +209,6 @@ describe('DictationButton', () => {
         new DictationButton({ dictation: makeDictation(false), status });
         expect($('dictBtn').disabled).toBe(true);
         expect(status.set).toHaveBeenCalledWith(expect.stringContaining('nie obsługuje'));
-        expect($('kbdHint').hidden).toBe(true);
     });
 });
 
@@ -222,6 +221,16 @@ describe('PinButton', () => {
         expect($('pinBtn').hidden).toBe(true);
     });
 
+    it('re-reads the real state when the window regains focus', async () => {
+        const fetchFn = vi.fn()
+            .mockResolvedValueOnce({ json: async () => ({ supported: true, alwaysOnTop: false }) })
+            .mockResolvedValue({ json: async () => ({ supported: true, alwaysOnTop: true }) });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        expect($('pinBtn').getAttribute('aria-pressed')).toBe('false');
+        window.dispatchEvent(new Event('focus'));
+        await vi.waitFor(() => expect($('pinBtn').getAttribute('aria-pressed')).toBe('true'));
+    });
+
     it('keeps asking until the window manager lists the window', async () => {
         vi.useFakeTimers();
         const fetchFn = vi.fn()
@@ -232,6 +241,28 @@ describe('PinButton', () => {
         await vi.advanceTimersByTimeAsync(1000);
         expect($('pinBtn').hidden).toBe(false);
         expect(fetchFn).toHaveBeenCalledTimes(2);
+        vi.useRealTimers();
+    });
+
+    it('reserves the toolbar row until the answer is final', async () => {
+        vi.useFakeTimers();
+        const fetchFn = vi.fn()
+            .mockResolvedValueOnce({ json: async () => ({ supported: false, alwaysOnTop: false }) })
+            .mockResolvedValue({ json: async () => ({ supported: true, alwaysOnTop: false }) });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        expect($('toolbar').classList.contains('pending')).toBe(true);
+        await vi.advanceTimersByTimeAsync(1000);
+        expect($('toolbar').classList.contains('pending')).toBe(false);
+        vi.useRealTimers();
+    });
+
+    it('releases the reserved row when pinning never becomes available', async () => {
+        vi.useFakeTimers();
+        const fetchFn = reply({ supported: false, alwaysOnTop: false });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        await vi.advanceTimersByTimeAsync(20000);
+        expect($('toolbar').classList.contains('pending')).toBe(false);
+        expect($('pinBtn').hidden).toBe(true);
         vi.useRealTimers();
     });
 

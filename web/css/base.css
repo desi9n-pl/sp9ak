@@ -10,7 +10,7 @@ body {
     gap: 10px;
     height: 100vh;
     padding: 14px;
-    overflow: hidden;
+    overflow: auto;   /* zoomed text may exceed the window: scroll instead of clipping */
     font-family: system-ui, -apple-system, sans-serif;
     background: var(--bg);
     color: var(--text);
@@ -31,9 +31,17 @@ button {
     cursor: pointer;
     transition: background 0.15s, transform 0.1s, color 0.15s, border-color 0.15s;
 }
+/* Keyboard focus must always be visible. Buttons get a ring that follows their rounded corners;
+   fields and list rows below swap the ring for a soft accent halo so the frame is not drawn twice.
+   --accent-text keeps at least 3:1 against the background in every theme. */
+:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
 button:active { transform: scale(0.96); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 button svg { flex-shrink: 0; }
+
+/* The halo around a focused field or row: the border turns accent, and a faint glow replaces the ring. */
+:root { --focus-halo: 0 0 0 3px color-mix(in srgb, var(--accent-text) 22%, transparent); }
 
 /* Button variants */
 .btn-primary { background: var(--accent); color: #fff; min-width: 96px; justify-content: center; }
@@ -48,7 +56,7 @@ button svg { flex-shrink: 0; }
 .btn-secondary:not(:disabled):hover,
 .btn-icon:hover { background: var(--btn-hover); }
 .btn-icon { padding: 8px 10px; }
-.btn-icon.active { border-color: var(--accent); color: var(--accent); }
+.btn-icon.active { border-color: var(--accent); color: var(--accent-text); }
 
 /* Compact buttons inside panels */
 .btn-small {
@@ -61,22 +69,26 @@ button svg { flex-shrink: 0; }
     font-weight: 500;
     flex-shrink: 0;
 }
-.btn-small:hover { background: var(--btn-hover); border-color: var(--accent); color: var(--accent); }
+.btn-small:hover { background: var(--btn-hover); border-color: var(--accent); color: var(--accent-text); }
 
 .btn-ghost {
+    min-height: 24px;
     gap: 0;
     padding: 3px 8px;
     border: 1px solid var(--btn-border);
     border-radius: 5px;
     background: transparent;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
 }
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent-text); }
 
 /* Icon-only buttons without a frame (close, delete) */
 .btn-bare {
+    justify-content: center;
+    min-width: 24px;
+    min-height: 24px;
     gap: 0;
     padding: 2px 5px;
     border-radius: 4px;
@@ -103,3 +115,21 @@ button svg { flex-shrink: 0; }
     z-index: 100;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Text for assistive technology only. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
