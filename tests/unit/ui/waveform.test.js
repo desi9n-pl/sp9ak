@@ -73,6 +73,18 @@ describe('Waveform', () => {
         expect(onFrame).toHaveBeenCalledTimes(2);
     });
 
+    it('redraws only a few times a second under reduced motion but keeps reporting the level', async () => {
+        window.matchMedia = vi.fn(() => ({ matches: true }));
+        const onFrame = vi.fn();
+        const waveform = new Waveform({ onFrame });
+        await waveform.start();
+        const drawn = context.fillRect.mock.calls.length;
+        frames.shift()();
+        expect(context.fillRect).toHaveBeenCalledTimes(drawn);
+        expect(onFrame).toHaveBeenCalledTimes(2);
+        delete window.matchMedia;
+    });
+
     it('falls back to square bars without roundRect', async () => {
         context.roundRect = undefined;
         await new Waveform({ onFrame: vi.fn() }).start();
