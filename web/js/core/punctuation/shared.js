@@ -85,8 +85,12 @@ export function capitalizeSentences(text) {
     return capitalized.replace(/([.!?][ \u00a0]+)(\p{Ll})/gu, (_, end, letter) => end + letter.toUpperCase());
 }
 
-/** Closing mark for a sentence that has none: a question mark when it opens like a question. */
+/**
+ * Closing mark for a sentence that has none: a question mark when it opens like a question.
+ * A lone statement gets no full stop: it is usually a title or a sentence fragment.
+ */
 export function closeSentence(text, questionStart) {
     if (/[.!?,;:]$/.test(text)) return text;
-    return text + (questionStart.test(text) ? '?' : '.');
+    if (questionStart.test(text)) return `${text}?`;
+    return /[.!?]/.test(text) ? `${text}.` : text;
 }
