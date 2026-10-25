@@ -31,6 +31,23 @@ def find_window():
     return None
 
 
+def retitle_loading_window():
+    """Gives Chrome's window its final title while the page is still loading.
+
+    Until the first response Chrome shows the address ("localhost…/index.html") in the title bar.
+    Returns True when such a window was found and renamed; Chrome later sets the same title itself.
+    """
+    for line in run('wmctrl', '-lGx').splitlines():
+        fields = line.split(None, 8)
+        if len(fields) < 9 or 'localhost' not in fields[6].lower():
+            continue
+        title = fields[8].strip().lower()
+        if title.startswith('localhost') and 'index.html' in title:
+            run('xdotool', 'set_window', '--name', WINDOW_TITLE, str(int(fields[0], 16)))
+            return True
+    return False
+
+
 def primary_monitor():
     """(x, y, width, height) of the primary monitor, else of the first connected one."""
     monitors = []
