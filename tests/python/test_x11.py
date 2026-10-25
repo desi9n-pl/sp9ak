@@ -197,6 +197,20 @@ class WindowCommandsTest(unittest.TestCase):
         self.assertIn(('wmctrl', '-i', '-r', '0x3a00007', '-b', 'add,above'), self.calls)
         self.assertIn(('wmctrl', '-i', '-r', '0x3a00007', '-b', 'remove,above'), self.calls)
 
+    def test_set_always_on_top_waits_until_the_window_manager_applied_the_change(self):
+        states = iter(['_NET_WM_STATE(ATOM) =', '_NET_WM_STATE(ATOM) =', '_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE'])
+
+        def run(*command):
+            self.calls.append(command)
+            if command[0] == 'wmctrl' and command[1] == '-lGx':
+                return WMCTRL_LIST
+            if command[0] == 'xprop':
+                return next(states, '_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE')
+            return ''
+
+        with mock.patch.object(x11, 'run', run), mock.patch.object(x11.time, 'sleep'):
+            self.assertEqual(x11.set_always_on_top(True), {'supported': True, 'alwaysOnTop': True})
+
     def test_set_always_on_top_without_a_window_changes_nothing(self):
         with mock.patch.object(x11, 'run', self.recording_run({})):
             x11.set_always_on_top(True)

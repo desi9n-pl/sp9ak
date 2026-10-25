@@ -10,6 +10,8 @@ TYPICAL_FRAME = (1, 1, 23, 1)   # window-manager frame (left, right, top, bottom
 TOOL_TIMEOUT_S = 3
 PLACEMENT_RETRIES = 2
 SETTLE_DELAY_S = 0.15
+STATE_POLLS = 6            # the window manager applies a state change asynchronously
+STATE_POLL_DELAY_S = 0.08
 
 
 def run(*command):
@@ -136,10 +138,14 @@ def window_state():
 
 
 def set_always_on_top(enabled):
-    """Pins or unpins the window above all others; returns the resulting state."""
+    """Pins or unpins the window above all others; returns the state the window manager really ended up in."""
     window = find_window()
     if window is not None:
         run('wmctrl', '-i', '-r', hex(window), '-b', f"{'add' if enabled else 'remove'},above")
+        for _ in range(STATE_POLLS):
+            if is_always_on_top(window) == enabled:
+                break
+            time.sleep(STATE_POLL_DELAY_S)
     return window_state()
 
 
