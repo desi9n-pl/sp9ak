@@ -152,6 +152,28 @@ describe('writing speech into the field', () => {
         expect(editor.value.match(/TC marketingowe/g)).toHaveLength(1);
     });
 
+    it('writes each dictated sentence once across several Enter presses', () => {
+        dictation.start();
+        recognition.say('pierwsze');
+        recognition.say(' drugie zdanie', false);
+        editor.type('\n', editor.value.length - ' drugie zdanie'.length);
+        recognition.say(' drugie zdanie');
+        recognition.say(' trzecie', false);
+        editor.type('\n', editor.caret);
+        recognition.say(' trzecie');
+        expect(editor.value.match(/drugie zdanie/g)).toHaveLength(1);
+        expect(editor.value.match(/trzecie/g)).toHaveLength(1);
+        expect(editor.value.match(/pierwsze/g)).toHaveLength(1);
+    });
+
+    it('keeps the final text when Enter comes with no unfinished phrase', () => {
+        dictation.start();
+        recognition.say('raz');
+        editor.type('\n');
+        recognition.say('dwa');
+        expect(editor.value).toBe('raz \ndwa ');
+    });
+
     it('does not follow typing when not dictating', () => {
         editor.type('tekst');
         dictation.start();
