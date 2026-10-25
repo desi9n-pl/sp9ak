@@ -5,6 +5,7 @@ const FFT_SIZE = 256;
 const USED_SPECTRUM = 0.65;
 const BAR_HEIGHT_SHARE = 0.88;
 const VOICE_BINS = [2, 20];
+const REDUCED_MOTION_REDRAW_MS = 250;
 
 /** HSL colour of one bar. Each theme has its own palette. */
 export function barColor(theme, loudness, position) {
@@ -25,11 +26,13 @@ export class Waveform {
     #analyser = null;
     #stream = null;
     #frame = null;
+    #lastDraw = 0;
 
     constructor({ onFrame }) {
         this.onFrame = onFrame;
         this.canvas = byId('waveform');
         this.context = this.canvas.getContext('2d');
+        this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
         window.addEventListener('resize', () => this.#resize());
     }
 
@@ -65,14 +68,20 @@ export class Waveform {
 
     #draw = () => {
         this.#frame = requestAnimationFrame(this.#draw);
+        const now = performance.now();
+        const sampleOnly = this.reducedMotion?.matches && now - this.#lastDraw < REDUCED_MOTION_REDRAW_MS;
+        if (sampleOnly) {
+            if (this.#analyser) this.#report();
+            return;
+        }
+        this.#lastDraw = now;
         const { width, height } = this.canvas;
         const style = getComputedStyle(document.documentElement);
         this.context.fillStyle = style.getPropertyValue('--surface').trim();
         this.context.fillRect(0, 0, width, height);
         if (!this.#analyser) return;
 
-        const spectrum = new Uint8Array(this.#analyser.frequencyBinCount);
-        this.#analyser.getByteFrequencyData(spectrum);
+        const spectrum = this.#spectrum();
         const theme = document.documentElement.dataset.theme;
         const usedBins = Math.floor(spectrum.length * USED_SPECTRUM);
         const barWidth = width / BARS;
@@ -85,6 +94,16 @@ export class Waveform {
         }
         this.onFrame(voiceLevel(spectrum));
     };
+
+    #spectrum() {
+        const spectrum = new Uint8Array(this.#analyser.frequencyBinCount);
+        this.#analyser.getByteFrequencyData(spectrum);
+        return spectrum;
+    }
+
+    #report() {
+        this.onFrame(voiceLevel(this.#spectrum()));
+    }
 
     #bar(x, y, width, height) {
         const radius = Math.min(3, width / 2);
