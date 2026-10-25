@@ -54,7 +54,9 @@ export function addEnumerationCommas(text, { cues, joiners }) {
  */
 export function addSemicolons(text, { links, minWords, commaAfter }) {
     const re = new RegExp(`\\s+(${alternatives(links)})(?=\\s|$)`, 'giu');
-    return text.split(/(?<=[.!?])\s+/).map(sentence => {
+    // the capture group keeps the separators, so a line break after a full stop survives
+    return text.split(/(?<=[.!?])(\s+)/).map((sentence, i) => {
+        if (i % 2) return sentence;
         const match = re.exec(sentence);
         re.lastIndex = 0;
         if (!match || sentence.slice(0, match.index).includes(';')) return sentence;
@@ -63,7 +65,7 @@ export function addSemicolons(text, { links, minWords, commaAfter }) {
         const after = sentence.slice(match.index + match[0].length);
         const link = match[1];
         return `${before}; ${link}${commaAfter && !after.startsWith(',') ? ',' : ''}${after}`;
-    }).join(' ');
+    }).join('');
 }
 
 /** A dash before phrases that restate or explain what was just said ("czyli", "that is"). */
@@ -82,7 +84,8 @@ export function tidySpacing(text) {
 export function capitalizeSentences(text) {
     if (!text) return text;
     const capitalized = text[0].toUpperCase() + text.slice(1);
-    return capitalized.replace(/([.!?][ \u00a0]+)(\p{Ll})/gu, (_, end, letter) => end + letter.toUpperCase());
+    // a line break opens a new sentence just like a full stop does
+    return capitalized.replace(/([.!?][ \u00a0]+|\n[ \t\u00a0]*)(\p{Ll})/gu, (_, end, letter) => end + letter.toUpperCase());
 }
 
 /**
