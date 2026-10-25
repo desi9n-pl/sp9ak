@@ -35,7 +35,7 @@ try {
         await toggleDictation(page);
         await page.evaluate(() => window.__say('myślę że to dobry pomysł'));
         await toggleDictation(page);
-        assert.match(await page.inputValue('#corrected'), /Myślę, że to dobry pomysł\./);
+        assert.match(await page.inputValue('#corrected'), /^Myślę, że to dobry pomysł\s*$/);
         await ctx.close();
     });
 
