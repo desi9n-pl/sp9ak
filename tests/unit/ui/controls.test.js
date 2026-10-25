@@ -209,7 +209,6 @@ describe('DictationButton', () => {
         new DictationButton({ dictation: makeDictation(false), status });
         expect($('dictBtn').disabled).toBe(true);
         expect(status.set).toHaveBeenCalledWith(expect.stringContaining('nie obsługuje'));
-        expect($('kbdHint').hidden).toBe(true);
     });
 });
 

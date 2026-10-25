@@ -41,17 +41,6 @@
     50% { opacity: 0.2; }
 }
 
-.kbd-hint {
-    flex-shrink: 0;
-    padding: 1px 5px;
-    border: 1px solid var(--btn-border);
-    border-radius: 4px;
-    background: var(--btn-bg);
-    color: var(--faint);
-    font-size: 12px;
-    letter-spacing: 0.01em;
-}
-
 .lang-chip {
     display: inline-flex;
     align-items: center;
@@ -86,11 +75,10 @@
     gap: 2px;
 }
 .btn-kbd {
-    font-size: 7px;
+    font-size: 9px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.02em;
-    opacity: 0.7;
 }
 
 #newNoteBtn { min-width: 120px; justify-content: center; padding: 8px 12px; }
