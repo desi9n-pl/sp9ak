@@ -80,6 +80,11 @@ Aplikacja ma działać po zwykłym `git clone` i `./sp9ak.sh`. Nic, co wymaga in
 Każda zmiana ma własną gałąź odgałęzioną od aktualnego `dev`. Jedna gałąź = jeden temat;
 niepowiązane zmiany idą do osobnych gałęzi i osobnych commitów.
 
+Temat to spójna funkcja lub obszar (np. „obsługa klawiaturą", „kontrast i rozmiary"), nie pojedyncza
+linijka. Nie zakładamy gałęzi dla zmiany na 2–3 linie: powiązane zmiany kumulujemy w jednej gałęzi, w osobnych
+commitach i razem z testami. Gałęzie dotykające tych samych plików lub fragmentów (np. tego samego bloku
+`index.html`) są kosztowne w scalaniu, więc łączymy je w jedną. Poprawki i ich testy nie rozdzielamy.
+
 ```bash
 git switch dev && git pull
 git switch -c fix/empty-dictation-space
