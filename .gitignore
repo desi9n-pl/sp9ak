@@ -6,3 +6,4 @@ __pycache__/
 sessions.json
 coverage/
 .coverage
+.venv/

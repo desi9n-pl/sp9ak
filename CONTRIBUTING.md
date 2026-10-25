@@ -8,10 +8,56 @@ przeprowadzić zmianę od pomysłu do pull requesta. Agenci AI stosują te same 
 
 Wymagania: Linux, Node.js 20+, Python 3.12+ (`ruff`), Chrome do testów E2E.
 
+### Node.js
+
 ```bash
 npm install
-pip install ruff
 ```
+
+### Python (tylko `ruff` do lintu)
+
+Aplikacja działa na samej bibliotece standardowej Pythona, więc nic z Pythona nie jest potrzebne do jej uruchomienia.
+Do `npm run lint` potrzebny jest tylko `ruff`. Zainstaluj go w **środowisku wirtualnym** (`venv`), czyli w osobnym
+katalogu `.venv/` w projekcie. Nie instaluj go globalnie: nowe Ubuntu/Debian odrzuci `pip install` w systemowym
+Pythonie z błędem `externally-managed-environment`, a venv i tak nie zaśmieca systemu.
+
+1. Utwórz venv (jednorazowo, w katalogu głównym repo):
+
+   ```bash
+   python3 -m venv .venv
+   ```
+
+   Gdy komenda zgłasza brak `ensurepip` lub `python3-venv`: `sudo apt install python3-venv` i powtórz.
+
+2. Aktywuj venv. **Robisz to w każdym nowym terminalu**, bo aktywacja dotyczy tylko jednego okna terminala:
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+   Na początku linii pojawi się `(.venv)`. Sprawdź: `which python` ma wskazywać na `.venv/bin/python` w projekcie.
+   Dla basha i zsh komenda jest ta sama.
+
+3. Zainstaluj `ruff` (jednorazowo, przy aktywnym venv):
+
+   ```bash
+   pip install ruff
+   ruff --version
+   ```
+
+4. Uruchamiaj lint przy aktywnym venv:
+
+   ```bash
+   npm run lint        # eslint + ruff
+   ```
+
+   `npm run lint` woła `ruff` po samej nazwie, więc bez aktywnego venv kończy się błędem `ruff: not found`.
+   Bez aktywacji zadziała `./.venv/bin/ruff check .`.
+
+5. Wyłączenie venv w danym terminalu: `deactivate`.
+
+W PhpStormie wskaż interpreter `.venv/bin/python` w ustawieniach projektu (Python Interpreter) albo aktywuj venv
+w jego terminalu. Katalog `.venv/` jest w `.gitignore` i nigdy nie trafia do repozytorium.
 
 Aplikacja ma działać po zwykłym `git clone` i `./sp9ak.sh`. Nic, co wymaga instalacji w systemie
 (np. pakiet `.deb`), nie może stać się warunkiem uruchomienia.
@@ -107,7 +153,7 @@ internetu ani kluczy API. Testy nigdy nie mogą zapisywać do prawdziwego `sessi
 
 ## Czego nie commitować
 
-- `sessions.json` (prywatne treści dyktowania), `chrome-profile/`, `dist/`, `coverage/`, `node_modules/`.
+- `sessions.json` (prywatne treści dyktowania), `chrome-profile/`, `dist/`, `coverage/`, `node_modules/`, `.venv/`.
 - Kluczy API, tokenów i innych sekretów. Aplikacja ma działać lokalnie, bez wysyłania danych do chmury
   poza jawnie włączonym zewnętrznym AI.
 
