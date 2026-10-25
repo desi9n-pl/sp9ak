@@ -82,9 +82,11 @@ new PinButton({ toast }).load();
 new HistoryView({
     history,
     onSelect(text) {
-        editor.setText(text);
-        editor.setCaret(text.length);
-        dictation.moveTo(text.length);
+        // Saved sessions are trimmed; dictated text ends with a space, so the next phrase must not stick to the last word.
+        const loaded = `${text} `;
+        editor.setText(loaded);
+        editor.setCaret(loaded.length);
+        dictation.moveTo(loaded.length);
         panels.close('history');
         editor.focus();
     },

@@ -134,10 +134,62 @@ describe('writing speech into the field', () => {
         expect(editor.value).toBe('raz ręcznie dwa ');
     });
 
-    it('drops the unfinished phrase when the user presses Enter, so it is not written twice', () => {
+    it('keeps a phrase in one line when Enter comes before it is final, and breaks the line after it', () => {
         dictation.start();
         recognition.say('raz');
         recognition.say('dwa', false);
+        editor.type('\n', 'raz '.length);
+        expect(editor.value).toBe('raz dwa');
+        recognition.say('dwa');
+        expect(editor.value).toBe('raz dwa\n');
+    });
+
+    it('does not split "przygotować się porządnie na TC marketingowe" when Enter is pressed mid-phrase', () => {
+        dictation.start();
+        recognition.say('przygotować się porządnie na', false);
+        editor.type('\n', 0);
+        recognition.say('przygotować się porządnie na TC marketingowe');
+        expect(editor.value).toBe('przygotować się porządnie na TC marketingowe\n');
+        recognition.say('następna linia');
+        expect(editor.value).toBe('przygotować się porządnie na TC marketingowe\nnastępna linia ');
+    });
+
+    it('applies the line break when dictation stops before the phrase became final', () => {
+        dictation.start();
+        recognition.say('raz');
+        recognition.say('dwa', false);
+        editor.type('\n', 'raz '.length);
+        dictation.stop();
+        recognition.end();
+        expect(editor.value).toBe('raz dwa\n');
+    });
+
+    it('drops the unfinished phrase even when Chrome gave it a leading space', () => {
+        dictation.start();
+        recognition.say('na');
+        recognition.say(' TC marketingowe', false);
+        editor.type('\n', 'na '.length);
+        recognition.say(' TC marketingowe');
+        expect(editor.value.match(/TC marketingowe/g)).toHaveLength(1);
+    });
+
+    it('writes each dictated sentence once across several Enter presses', () => {
+        dictation.start();
+        recognition.say('pierwsze');
+        recognition.say(' drugie zdanie', false);
+        editor.type('\n', editor.value.length - ' drugie zdanie'.length);
+        recognition.say(' drugie zdanie');
+        recognition.say(' trzecie', false);
+        editor.type('\n', editor.caret);
+        recognition.say(' trzecie');
+        expect(editor.value.match(/drugie zdanie/g)).toHaveLength(1);
+        expect(editor.value.match(/trzecie/g)).toHaveLength(1);
+        expect(editor.value.match(/pierwsze/g)).toHaveLength(1);
+    });
+
+    it('keeps the final text when Enter comes with no unfinished phrase', () => {
+        dictation.start();
+        recognition.say('raz');
         editor.type('\n');
         recognition.say('dwa');
         expect(editor.value).toBe('raz \ndwa ');

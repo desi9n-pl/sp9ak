@@ -83,11 +83,11 @@ try {
         await ctx.close();
     });
 
-    await check('punctuation on: the corrected text gets a comma and a full stop', async () => {
+    await check('punctuation on: the corrected text gets a comma and a capital letter', async () => {
         const { page, ctx } = await dictPage();
         await dictate(page, 'nie przyjdę bo jestem chory');
         assert.equal(await visible(page, '#correctedSection'), true);
-        assert.equal((await page.inputValue('#corrected')).trim(), 'Nie przyjdę, bo jestem chory.');
+        assert.equal((await page.inputValue('#corrected')).trim(), 'Nie przyjdę, bo jestem chory');
         await ctx.close();
     });
 
@@ -151,7 +151,7 @@ try {
         const { page, ctx } = await dictPage();
         await dictate(page, 'pierwszy tekst');
         await page.fill('#output', 'zupełnie nowy tekst');
-        await page.waitForFunction(() => /Zupełnie nowy tekst\./.test(document.getElementById('corrected').value), null, { timeout: 5000 });
+        await page.waitForFunction(() => /Zupełnie nowy tekst/.test(document.getElementById('corrected').value), null, { timeout: 5000 });
         await ctx.close();
     });
 
@@ -193,7 +193,7 @@ try {
         await page.click('#historyBtn');
         await page.click('.sess-body');
         await dictate(page, 'dopisek');
-        assert.match(await page.inputValue('#output'), /^Stara notatka testowa\.\s*dopisek\s*$/);
+        assert.match(await page.inputValue('#output'), /^Stara notatka testowa dopisek\s*$/);
         await ctx.close();
     });
 
@@ -230,7 +230,7 @@ try {
         await page.fill('#output', '');
         await dictate(page, 'nie przyjdę bo jestem chory');
         await page.click('#copyBtn');
-        assert.equal((await page.evaluate(() => navigator.clipboard.readText())).trim(), 'Nie przyjdę, bo jestem chory.');
+        assert.equal((await page.evaluate(() => navigator.clipboard.readText())).trim(), 'Nie przyjdę, bo jestem chory');
         await page.waitForFunction(() => document.getElementById('copyLabel').textContent === 'Kopiuj', null, { timeout: 4000 });
         await ctx.close();
     });

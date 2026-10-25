@@ -239,15 +239,41 @@ describe('CorrectedPane', () => {
         });
         afterEach(() => vi.useRealTimers());
 
-        it('re-renders a few seconds after the text stops changing', () => {
+        it('re-renders 3 seconds after the first change, with the latest text', () => {
             pane.show();
             editor.setText('pierwsza wersja');
             vi.advanceTimersByTime(2000);
             editor.setText('druga wersja');
-            vi.advanceTimersByTime(2999);
+            vi.advanceTimersByTime(999);
             expect(pane.value).toBe('');
             vi.advanceTimersByTime(1);
             expect(pane.value).toBe('[druga wersja] ');
+        });
+
+        it('animates dots while a rendering is pending and clears them afterwards', () => {
+            pane.show();
+            editor.setText('tekst');
+            const frames = [];
+            for (let i = 0; i < 4; i++) {
+                frames.push($('correctedLoader').textContent);
+                vi.advanceTimersByTime(400);
+            }
+            expect(frames).toEqual([' .', ' ..', ' ...', ' .']);
+            vi.advanceTimersByTime(3000);
+            expect($('correctedLoader').textContent).toBe('');
+        });
+
+        it('renders on schedule even if the text keeps changing', () => {
+            pane.show();
+            pane.append('[stary] ');
+            editor.setText('');
+            for (let i = 1; i < 3; i++) {
+                vi.advanceTimersByTime(1000);
+                editor.setText(' '.repeat(i));
+            }
+            expect(pane.value).toBe('[stary] ');
+            vi.advanceTimersByTime(1000);
+            expect(pane.value).toBe('');
         });
 
         it('flush renders a pending edit at once and only once', () => {

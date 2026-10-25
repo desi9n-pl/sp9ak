@@ -35,6 +35,8 @@ export class Dictation extends Emitter {
     // stop() was called but the engine has not reported `end` yet; start() would throw until it does
     #stopping = false;
     #startRequested = false;
+    // Enter was pressed in the middle of a phrase: the line break waits until the phrase is final
+    #pendingBreak = false;
 
     /**
      * @param editor        text field wrapper (see ui/editor.js)
@@ -91,6 +93,7 @@ export class Dictation extends Emitter {
             return;
         }
         this.span.begin(resolveStartPosition(this.#editor.caret, this.#rememberedCaret, this.#editor.value.length));
+        this.#pendingBreak = false;
         this.#listening = true;
         this.#recognition.lang = this.language;
         try {
@@ -136,9 +139,31 @@ export class Dictation extends Emitter {
     /** The user typed while dictating: the recognizer's text now continues from the caret. */
     #reanchor() {
         if (!this.#listening) return;
+        if (this.#deferBreak()) return;
         const caret = this.#dropInterim(this.#editor.caret);
         this.#editor.setCaret(caret);
         this.span.begin(caret);
+    }
+
+    /**
+     * Enter pressed right before the unfinished phrase would split it across two lines. The break
+     * is taken back out of the field and re-applied once the phrase is final. Returns true if so.
+     */
+    #deferBreak() {
+        const interim = this.span.interim.trim();
+        const { value, caret } = this.#editor;
+        if (!interim || value[caret - 1] !== '\n' || !value.slice(caret).trimStart().startsWith(interim)) return false;
+        this.#editor.setText(value.slice(0, caret - 1) + value.slice(caret));
+        this.#editor.setCaret(caret - 1);
+        this.#pendingBreak = true;
+        return true;
+    }
+
+    /** Ends the line of a finished phrase when Enter was pressed while it was still being spoken. */
+    #applyPendingBreak() {
+        if (!this.#pendingBreak || this.span.interim) return;
+        this.#pendingBreak = false;
+        this.span.final = `${this.span.final.trimEnd()}\n`;
     }
 
     /**
@@ -147,7 +172,9 @@ export class Dictation extends Emitter {
      * Returns the caret, moved back if the phrase stood before it.
      */
     #dropInterim(caret) {
-        const { interim, start } = this.span;
+        const { start } = this.span;
+        // The field holds the phrase with doubled spaces collapsed (see SpeechSpan.apply), so match it trimmed.
+        const interim = this.span.interim.trim();
         if (!interim) return caret;
         const value = this.#editor.value;
         const at = value.indexOf(interim, start);
@@ -165,7 +192,10 @@ export class Dictation extends Emitter {
             if (event.results[i].isFinal) finals += `${this.#shout() ? transcript.toUpperCase() : transcript} `;
             else interim += transcript;
         }
-        this.#write(this.span.final + finals, interim);
+        this.span.final += finals;
+        this.span.interim = interim;
+        this.#applyPendingBreak();
+        this.#write(this.span.final, interim);
     }
 
     /** Closes the phrase for the loudness tracker; true when it should be written in capitals. */
@@ -198,7 +228,10 @@ export class Dictation extends Emitter {
         }
         // Chrome ends the session on its own (silence, network). Freeze what was heard so the
         // restarted engine, which begins from scratch, cannot overwrite it.
-        if (this.span.commitInterim()) this.#write(this.span.final, '');
+        if (this.span.commitInterim()) {
+            this.#applyPendingBreak();
+            this.#write(this.span.final, '');
+        }
         if (this.#networkError) this.#retryAfterNetworkError();
         else this.#restart();
     }
@@ -229,9 +262,10 @@ export class Dictation extends Emitter {
 
     #finish() {
         this.span.commitInterim();
+        this.#applyPendingBreak();
         // nothing was said: a bare start/stop must not leave a space behind
         const { final } = this.span;
-        const raw = final === '' || final.endsWith(' ') ? final : `${final} `;
+        const raw = final === '' || /[ \n]$/.test(final) ? final : `${final} `;
         this.#write(raw, '');
         this.emit('stopped');
         this.emit('finished', { text: this.span.final });

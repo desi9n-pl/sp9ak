@@ -17,6 +17,10 @@ describe('capitalizeSentences', () => {
         expect(capitalizeSentences(input)).toBe(expected);
     });
 
+    it('capitalizes after a line break', () => {
+        expect(capitalizeSentences('przygotować się\n tc marketingowe')).toBe('Przygotować się\n Tc marketingowe');
+    });
+
     it('keeps existing capitals and mid-sentence words', () => {
         expect(capitalizeSentences('Jan kowalski. Anna nowak')).toBe('Jan kowalski. Anna nowak');
     });
@@ -28,8 +32,12 @@ describe('capitalizeSentences', () => {
 });
 
 describe('punctuate', () => {
-    it('ends a statement with a full stop and capitalizes it', () => {
-        expect(punctuate('witaj')).toBe('Witaj.');
+    it('capitalizes a lone statement and leaves it without a full stop', () => {
+        expect(punctuate('witaj')).toBe('Witaj');
+    });
+
+    it('keeps the closing full stop when the text has more than one sentence', () => {
+        expect(punctuate('witaj. co słychać')).toBe('Witaj. Co słychać.');
     });
 
     it('ends a question with a question mark', () => {
@@ -38,7 +46,7 @@ describe('punctuate', () => {
     });
 
     it('trims surrounding whitespace and collapses repeated spaces', () => {
-        expect(punctuate('  cześć   wszystkim  ')).toBe('Cześć wszystkim.');
+        expect(punctuate('  cześć   wszystkim  ')).toBe('Cześć wszystkim');
     });
 
     it('returns an empty string for blank input', () => {
@@ -131,11 +139,11 @@ describe('word lists', () => {
 describe('semicolons, dashes and lists', () => {
     it('uses a semicolon before jednak after a long clause', () => {
         expect(punctuate('plan wyglądał dobrze na papierze od samego początku jednak w praktyce nie działał'))
-            .toBe('Plan wyglądał dobrze na papierze od samego początku; jednak w praktyce nie działał.');
+            .toBe('Plan wyglądał dobrze na papierze od samego początku; jednak w praktyce nie działał');
     });
 
     it('keeps the comma before jednak after a short clause', () => {
-        expect(punctuate('chcę jednak nie mogę')).toBe('Chcę, jednak nie mogę.');
+        expect(punctuate('chcę jednak nie mogę')).toBe('Chcę, jednak nie mogę');
     });
 
     it('does not add a second semicolon in one sentence', () => {
@@ -144,16 +152,16 @@ describe('semicolons, dashes and lists', () => {
     });
 
     it('sets off a restatement with a dash', () => {
-        expect(punctuate('potrzebuję jednej rzeczy czyli czasu')).toBe('Potrzebuję jednej rzeczy – czyli czasu.');
+        expect(punctuate('potrzebuję jednej rzeczy czyli czasu')).toBe('Potrzebuję jednej rzeczy – czyli czasu');
     });
 
     it('makes a comma list after a cue', () => {
         expect(punctuate('lubię owoce takie jak jabłka gruszki śliwki i wiśnie'))
-            .toBe('Lubię owoce, takie jak jabłka, gruszki, śliwki i wiśnie.');
+            .toBe('Lubię owoce, takie jak jabłka, gruszki, śliwki i wiśnie');
     });
 
     it('does not split a two-item list', () => {
-        expect(punctuate('lubię owoce takie jak jabłka i wiśnie')).toBe('Lubię owoce, takie jak jabłka i wiśnie.');
+        expect(punctuate('lubię owoce takie jak jabłka i wiśnie')).toBe('Lubię owoce, takie jak jabłka i wiśnie');
     });
 
     it('leaves an existing list alone', () => {

@@ -39,7 +39,7 @@ describe('PunctuationToggle', () => {
         const toggle = new PunctuationToggle({ storage: memoryStorage(), ai: assistant('on') });
         expect(toggle.enabled).toBe(true);
         expect($('punctToggle').classList.contains('active')).toBe(true);
-        expect(toggle.apply('nie przyjdę bo jestem chory')).toBe('Nie przyjdę, bo jestem chory.');
+        expect(toggle.apply('nie przyjdę bo jestem chory')).toBe('Nie przyjdę, bo jestem chory');
     });
 
     it('can be switched off and remembers it', () => {

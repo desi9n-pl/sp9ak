@@ -3,15 +3,19 @@ import { byId } from './dom.js';
 
 const EDIT_HINT = 'Edytuj tekst w górnym okienku';
 const REFRESH_DELAY_MS = 3000;
+const LOADER_FRAMES = ['.', '..', '...'];
+const LOADER_STEP_MS = 400;
 
 /** The read-only text below the editor: the dictated text after punctuation. */
 export class CorrectedPane {
     #lastSource = '';
     #timer = null;
+    #loaderTimer = null;
     #pending = null;
 
     constructor({ toast }) {
         this.section = byId('correctedSection');
+        this.loader = byId('correctedLoader');
         this.field = byId('corrected');
         this.#blockEditing(toast);
     }
@@ -40,23 +44,39 @@ export class CorrectedPane {
     }
 
     /**
-     * Keeps the pane in step with manual edits of `editor`: a few seconds after the
-     * text stops changing, it is rendered again with `render(text)`.
+     * Keeps the pane in step with edits of `editor`: the first change after a rendering
+     * schedules the next one REFRESH_DELAY_MS later, so continuous typing or dictation
+     * cannot postpone it. `render(text)` produces the new content; a dots loader shows meanwhile.
      */
     followEditor(editor, render) {
         editor.on('change', () => {
-            clearTimeout(this.#timer);
             this.#pending = () => this.#refresh(editor, render);
+            if (this.#timer) return;
             this.#timer = setTimeout(() => this.flush(), REFRESH_DELAY_MS);
+            this.#startLoader();
         });
     }
 
     /** Renders a manual edit that is still waiting for its delay, so readers never see the old version. */
     flush() {
         clearTimeout(this.#timer);
+        this.#timer = null;
+        this.#stopLoader();
         const refresh = this.#pending;
         this.#pending = null;
         refresh?.();
+    }
+
+    #startLoader() {
+        let frame = 0;
+        const step = () => { this.loader.textContent = ` ${LOADER_FRAMES[frame++ % LOADER_FRAMES.length]}`; };
+        step();
+        this.#loaderTimer = setInterval(step, LOADER_STEP_MS);
+    }
+
+    #stopLoader() {
+        clearInterval(this.#loaderTimer);
+        this.loader.textContent = '';
     }
 
     #refresh(editor, render) {
