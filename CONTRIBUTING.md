@@ -24,8 +24,12 @@ Pythonie z błędem `externally-managed-environment`, a venv i tak nie zaśmieca
 1. Utwórz venv (jednorazowo, w katalogu głównym repo):
 
    ```bash
-   python3 -m venv .venv
+   python3 -m venv --system-site-packages .venv
    ```
+
+   Przełącznik `--system-site-packages` jest potrzebny, żeby venv widział pakiety systemowe (`python-xlib`, `gi`),
+   z których korzystają testy Pythona. Bez niego `npm run test:py` przy aktywnym venv zgłosi
+   `No module named 'Xlib'`.
 
    Gdy komenda zgłasza brak `ensurepip` lub `python3-venv`: `sudo apt install python3-venv` i powtórz.
 
