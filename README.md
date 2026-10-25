@@ -238,7 +238,7 @@ Przyciski filtrów pozwalają wyświetlić tylko błędy lub tylko zaliczone prz
 │   ├── css/              # motywy, układ, kontrolki, panele, modal
 │   ├── js/
 │   │   ├── main.js       # składa aplikację z poniższych modułów
-│   │   ├── core/         # czysta logika bez DOM: interpunkcja, odcinek mowy, parsowanie korekty…
+│   │   ├── core/         # czysta logika bez DOM: interpunkcja (punctuation/: pl.js, en.js, shared.js), odcinek mowy, parsowanie korekty…
 │   │   ├── services/     # dyktowanie, Gemini Nano, zewnętrzne AI, historia sesji, skrót globalny
 │   │   └── ui/           # cienkie widoki DOM (panele, historia, przyciski, przebieg audio…)
 │   └── nano-check/       # strona do ręcznego sprawdzenia jakości korekty Gemini Nano
@@ -312,6 +312,19 @@ Na Waylandzie globalne skróty nie są dostępne dla zwykłych programów – us
 
 Nad edytorem jest maleńki pasek z przyciskami okna. Pierwszy z nich, pinezka, przypina okno na wierzchu (Always On Top)
 i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylandzie, przycisk jest ukryty.
+
+## Interpunkcja według języka
+
+Automatyczna interpunkcja (chip ✦) działa regułami, osobnymi dla każdego języka rozpoznawania (PL / EN):
+`web/js/core/punctuation/pl.js` i `en.js` zawierają listy słów, a `shared.js` wspólne przebiegi. Reguły:
+
+- **przecinek** przed spójnikami i zdaniami podrzędnymi oraz po zwrotach wprowadzających na początku zdania,
+- **średnik** przed „jednak", „natomiast", „ponadto" (EN: „however", „moreover"…) po dłuższym zdaniu (od 6 słów); krótkie zdanie zostaje z przecinkiem,
+- **pauza** przed „czyli", „to znaczy" (PL: ` – `; EN: „that is", „namely": `—`),
+- **wyliczenia**: po „takie jak", „na przykład" (EN: „such as", „including") ciąg co najmniej trzech pojedynczych słów zakończony „i" / „oraz" / „and" dostaje przecinki,
+- znak końca zdania (pytajnik, gdy zdanie zaczyna się jak pytanie) i wielkie litery.
+
+Nieznany język używa reguł polskich. Nowy język to nowy plik z regułami i wpis w `index.js`.
 
 ## Praca bez internetu / przy słabym łączu
 
