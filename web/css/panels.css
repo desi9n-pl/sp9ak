@@ -85,7 +85,8 @@
 }
 .ext-select { flex-shrink: 0; cursor: pointer; }
 .ext-input { flex: 1; min-width: 50px; }
-.ext-input:focus { border-color: var(--accent); }
+.ext-select:focus-visible,
+.ext-input:focus-visible { outline: none; border-color: var(--accent-text); box-shadow: var(--focus-halo); }
 .ext-check {
     display: flex;
     align-items: center;
@@ -117,7 +118,9 @@
     background: var(--bg);
     transition: border-color 0.15s;
 }
-.sess-item:hover, .sess-item:focus-within { border-color: var(--accent); }
+.sess-item:hover { border-color: var(--accent); }
+.sess-item:has(.sess-body:focus-visible) { border-color: var(--accent-text); box-shadow: var(--focus-halo); }
+.sess-body:focus-visible { outline: none; }
 /* The whole row is one button that loads the session. */
 .sess-body {
     display: block;

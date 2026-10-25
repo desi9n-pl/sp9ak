@@ -31,12 +31,17 @@ button {
     cursor: pointer;
     transition: background 0.15s, transform 0.1s, color 0.15s, border-color 0.15s;
 }
-/* Keyboard focus must always be visible; the ring only shows for keyboard-like focus on buttons. */
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Keyboard focus must always be visible. Buttons get a ring that follows their rounded corners;
+   fields and list rows below swap the ring for a soft accent halo so the frame is not drawn twice.
+   --accent-text keeps at least 3:1 against the background in every theme. */
+:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 
 button:active { transform: scale(0.96); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 button svg { flex-shrink: 0; }
+
+/* The halo around a focused field or row: the border turns accent, and a faint glow replaces the ring. */
+:root { --focus-halo: 0 0 0 3px color-mix(in srgb, var(--accent-text) 22%, transparent); }
 
 /* Button variants */
 .btn-primary { background: var(--accent); color: #fff; min-width: 96px; justify-content: center; }

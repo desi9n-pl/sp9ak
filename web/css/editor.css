@@ -41,9 +41,9 @@ textarea {
     font-size: 15px;
     line-height: 1.65;
     resize: none;
-    transition: border-color 0.2s, background 0.25s, color 0.25s;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.25s, color 0.25s;
 }
-textarea:focus { border-color: var(--accent); }
+textarea:focus-visible { outline: none; border-color: var(--accent-text); box-shadow: var(--focus-halo); }
 textarea::placeholder { color: var(--faint); }
 #corrected { background: var(--bg); cursor: default; }
 
