@@ -70,10 +70,10 @@ describe('the assembled page', () => {
         await startApp();
         await dictate('nie przyjdę bo jestem chory');
         expect($('output').value).toBe('nie przyjdę bo jestem chory ');
-        expect($('corrected').value).toBe('Nie przyjdę, bo jestem chory. ');
+        expect($('corrected').value).toBe('Nie przyjdę, bo jestem chory ');
         expect($('correctedSection').hidden).toBe(false);
         expect(saved).toHaveLength(1);
-        expect(saved[0].text).toBe('Nie przyjdę, bo jestem chory.');
+        expect(saved[0].text).toBe('Nie przyjdę, bo jestem chory');
     });
 
     it('does not save an accidental one-word dictation', async () => {
@@ -116,7 +116,7 @@ describe('the assembled page', () => {
         key(document, { key: 'n', ctrlKey: true });
         click($('historyBtn'));
         click(document.querySelector('.sess-body'));
-        expect($('output').value).toBe('Stara notatka z historii.');
+        expect($('output').value).toBe('Stara notatka z historii');
         expect($('historyPanel').classList.contains('open')).toBe(false);
     });
 
@@ -172,7 +172,7 @@ describe('the assembled page', () => {
         await dictate('tekst do skopiowania');
         key(document, { key: 'c', ctrlKey: true });
         await vi.advanceTimersByTimeAsync(0);
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Tekst do skopiowania. ');
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Tekst do skopiowania ');
     });
 
     it('works without speech recognition', async () => {

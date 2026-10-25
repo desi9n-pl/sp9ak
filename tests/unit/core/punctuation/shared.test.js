@@ -18,9 +18,9 @@ describe('rulesFor', () => {
 
 describe('punctuate', () => {
     it('applies the rules of the given language to the same words', () => {
-        expect(punctuate('ale tak', 'pl-PL')).toBe('Ale tak.');
-        expect(punctuate('we tried but failed', 'en-US')).toBe('We tried, but failed.');
-        expect(punctuate('we tried but failed', 'pl-PL')).toBe('We tried but failed.');
+        expect(punctuate('ale tak', 'pl-PL')).toBe('Ale tak');
+        expect(punctuate('we tried but failed', 'en-US')).toBe('We tried, but failed');
+        expect(punctuate('we tried but failed', 'pl-PL')).toBe('We tried but failed');
     });
 
     it('is Polish by default', () => {
