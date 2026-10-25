@@ -147,7 +147,9 @@ export class Dictation extends Emitter {
      * Returns the caret, moved back if the phrase stood before it.
      */
     #dropInterim(caret) {
-        const { interim, start } = this.span;
+        const { start } = this.span;
+        // The field holds the phrase with doubled spaces collapsed (see SpeechSpan.apply), so match it trimmed.
+        const interim = this.span.interim.trim();
         if (!interim) return caret;
         const value = this.#editor.value;
         const at = value.indexOf(interim, start);

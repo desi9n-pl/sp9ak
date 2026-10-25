@@ -143,6 +143,15 @@ describe('writing speech into the field', () => {
         expect(editor.value).toBe('raz \ndwa ');
     });
 
+    it('drops the unfinished phrase even when Chrome gave it a leading space', () => {
+        dictation.start();
+        recognition.say('na');
+        recognition.say(' TC marketingowe', false);
+        editor.type('\n', 'na '.length);
+        recognition.say(' TC marketingowe');
+        expect(editor.value.match(/TC marketingowe/g)).toHaveLength(1);
+    });
+
     it('does not follow typing when not dictating', () => {
         editor.type('tekst');
         dictation.start();
