@@ -63,7 +63,9 @@ class RetitleLoadingWindowTest(unittest.TestCase):
             return x11.retitle_loading_window(), calls
 
     def test_renames_the_window_that_still_shows_the_address(self):
-        found, calls = self.run_with('0x03a00007  0 100 200 540 640 localhost__index.html.Google-chrome-beta host localhost:17823/index.html\n')
+        found, calls = self.run_with(
+            '0x03a00007  0 100 200 540 640 localhost__index.html.Google-chrome-beta host localhost:17823/index.html\n',
+        )
         self.assertTrue(found)
         self.assertIn(('xdotool', 'set_window', '--name', 'sp9ak', str(0x03A00007)), calls)
 
