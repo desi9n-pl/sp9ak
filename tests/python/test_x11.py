@@ -52,6 +52,35 @@ class FindWindowTest(unittest.TestCase):
             self.assertIsNone(x11.find_window())
 
 
+class RetitleLoadingWindowTest(unittest.TestCase):
+    def run_with(self, listing):
+        calls = []
+
+        def run(*command):
+            calls.append(command)
+            return listing if command[0] == 'wmctrl' else ''
+        with mock.patch.object(x11, 'run', run):
+            return x11.retitle_loading_window(), calls
+
+    def test_renames_the_window_that_still_shows_the_address(self):
+        found, calls = self.run_with('0x03a00007  0 100 200 540 640 localhost__index.html.Google-chrome-beta host localhost:17823/index.html\n')
+        self.assertTrue(found)
+        self.assertIn(('xdotool', 'set_window', '--name', 'sp9ak', str(0x03A00007)), calls)
+
+    def test_leaves_a_window_that_already_has_the_final_title(self):
+        found, calls = self.run_with(WMCTRL_LIST)
+        self.assertFalse(found)
+        self.assertEqual([c[0] for c in calls], ['wmctrl'])
+
+    def test_leaves_other_localhost_apps_alone(self):
+        found, calls = self.run_with('0x01  0 0 0 1 1 localhost__other.Google-chrome host localhost:3000/dashboard\n')
+        self.assertFalse(found)
+        self.assertEqual([c[0] for c in calls], ['wmctrl'])
+
+    def test_nothing_to_do_without_a_window(self):
+        self.assertFalse(self.run_with('')[0])
+
+
 class MonitorTest(unittest.TestCase):
     def test_prefers_the_primary_monitor(self):
         with mock.patch.object(x11, 'run', fake_run({'xrandr': XRANDR})):
@@ -196,6 +225,20 @@ class WindowCommandsTest(unittest.TestCase):
             x11.set_always_on_top(False)
         self.assertIn(('wmctrl', '-i', '-r', '0x3a00007', '-b', 'add,above'), self.calls)
         self.assertIn(('wmctrl', '-i', '-r', '0x3a00007', '-b', 'remove,above'), self.calls)
+
+    def test_set_always_on_top_waits_until_the_window_manager_applied_the_change(self):
+        states = iter(['_NET_WM_STATE(ATOM) =', '_NET_WM_STATE(ATOM) =', '_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE'])
+
+        def run(*command):
+            self.calls.append(command)
+            if command[0] == 'wmctrl' and command[1] == '-lGx':
+                return WMCTRL_LIST
+            if command[0] == 'xprop':
+                return next(states, '_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE')
+            return ''
+
+        with mock.patch.object(x11, 'run', run), mock.patch.object(x11.time, 'sleep'):
+            self.assertEqual(x11.set_always_on_top(True), {'supported': True, 'alwaysOnTop': True})
 
     def test_set_always_on_top_without_a_window_changes_nothing(self):
         with mock.patch.object(x11, 'run', self.recording_run({})):

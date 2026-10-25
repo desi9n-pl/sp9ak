@@ -20,8 +20,8 @@ HOTKEY_START = os.environ.get('SP9AK_HOTKEY', DEFAULT_HOTKEY)
 HOTKEY_STOP = os.environ.get('SP9AK_HOTKEY_STOP', DEFAULT_HOTKEY_STOP)
 ICON = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icon.svg')
 
-WINDOW_POLL_MS = 500
-WINDOW_POLL_ATTEMPTS = 60   # Chrome creates its window with a delay
+WINDOW_POLL_MS = 100       # short, so the address Chrome shows while loading is replaced almost at once
+WINDOW_POLL_ATTEMPTS = 300  # 30 s: Chrome creates its window with a delay
 REQUEST_TIMEOUT_S = 2
 
 
@@ -54,7 +54,7 @@ def on_stop_hotkey():
 
 
 class WindowPlacer:
-    """GLib timeout callback: places the window once Chrome has created it, then stops."""
+    """GLib timeout callback: titles the window while it loads, places it once the title is final, then stops."""
 
     def __init__(self):
         self.attempts = 0
@@ -64,6 +64,7 @@ class WindowPlacer:
         if window is not None:
             x11.place_bottom_right(window)
             return False
+        x11.retitle_loading_window()
         self.attempts += 1
         return self.attempts < WINDOW_POLL_ATTEMPTS
 

@@ -105,6 +105,8 @@ nie jest scalany.
 | E2E (Playwright + Chrome) | `tests/e2e` | `npm run test:e2e` |
 | Losowe klikanie | `tests/e2e/monkey.e2e.mjs` | `npm run test:monkey` |
 | Układ okna (gremlins) | `tests/e2e/layout.e2e.mjs` | `npm run test:layout` |
+| Dostępność (pa11y) | `tests/quality/a11y.mjs` | `npm run test:a11y` |
+| Wydajność i jakość frontu (Lighthouse) | `tests/quality/lighthouse.mjs` | `npm run test:lighthouse` |
 
 Testy E2E używają atrapy `SpeechRecognition` i atrapy `/api/ai`, więc nie potrzebują mikrofonu,
 internetu ani kluczy API. Testy nigdy nie mogą zapisywać do prawdziwego `sessions.json`

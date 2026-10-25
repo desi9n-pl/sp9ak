@@ -71,10 +71,20 @@ class WindowPlacerTest(TrayTestCase):
     def test_keeps_polling_until_the_attempts_run_out(self):
         placer = self.tray.WindowPlacer()
         with mock.patch.object(self.tray.x11, 'find_window', return_value=None), \
+                mock.patch.object(self.tray.x11, 'retitle_loading_window'), \
                 mock.patch.object(self.tray.x11, 'place_bottom_right') as place:
             results = [placer() for _ in range(self.tray.WINDOW_POLL_ATTEMPTS)]
         self.assertEqual(results.count(True), self.tray.WINDOW_POLL_ATTEMPTS - 1)
         self.assertFalse(results[-1])
+        place.assert_not_called()
+
+    def test_titles_the_window_while_it_is_still_loading(self):
+        placer = self.tray.WindowPlacer()
+        with mock.patch.object(self.tray.x11, 'find_window', return_value=None), \
+                mock.patch.object(self.tray.x11, 'retitle_loading_window') as retitle, \
+                mock.patch.object(self.tray.x11, 'place_bottom_right') as place:
+            self.assertTrue(placer())
+        retitle.assert_called_once_with()
         place.assert_not_called()
 
 

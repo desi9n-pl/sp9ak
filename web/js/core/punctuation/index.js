@@ -1,0 +1,31 @@
+import { EN } from './en.js';
+import { PL } from './pl.js';
+import {
+    addConjunctionCommas, addCorrelativeCommas, addDashes, addEnumerationCommas, addIntroCommas, addSemicolons,
+    capitalizeSentences, closeSentence, tidySpacing,
+} from './shared.js';
+
+const RULES = { pl: PL, en: EN };
+
+/** Rules for a recognition language tag such as "pl-PL" or "en-US"; Polish when the language is unknown. */
+export function rulesFor(language) {
+    return RULES[String(language ?? '').slice(0, 2).toLowerCase()] ?? PL;
+}
+
+/** Adds commas, semicolons, dashes, a closing mark and sentence capitals according to the language's rules. */
+export function punctuate(text, language = 'pl-PL') {
+    const rules = rulesFor(language);
+    let t = text.trim();
+    if (!t) return t;
+    t = t.replace(/[ \t]{2,}/g, ' ');
+    t = addIntroCommas(t, rules.introPhrases);
+    t = addCorrelativeCommas(t, rules.correlatives);
+    t = addEnumerationCommas(t, rules.enumeration);
+    t = addSemicolons(t, rules.semicolons);
+    t = addDashes(t, rules.dashes);
+    t = addConjunctionCommas(t, rules.conjunctions);
+    t = tidySpacing(t);
+    return capitalizeSentences(closeSentence(t, rules.questionStart));
+}
+
+export { capitalizeSentences };
