@@ -1,0 +1,53 @@
+/** Polish rules: comma, semicolon, dash and list punctuation for dictated text. */
+
+// Subordinating and coordinating conjunctions that are preceded by a comma.
+export const CONJUNCTIONS = [
+    'ale', 'jednak', 'lecz', 'natomiast', 'tymczasem', 'niemniej', 'wszelako',
+    'ponieważ', 'bo', 'gdyż', 'bowiem', 'albowiem', 'dlatego że', 'przez to że',
+    'żeby', 'aby', 'ażeby', 'że', 'iż', 'żeby nie',
+    'który', 'która', 'które', 'którzy', 'których', 'któremu', 'którym', 'którą',
+    'jeżeli', 'jeśli', 'skoro', 'gdyby', 'o ile',
+    'gdy', 'kiedy', 'odkąd', 'dopóki', 'zanim', 'zaledwie', 'nim',
+    'po tym jak', 'w chwili gdy', 'wtedy gdy',
+    'choć', 'chociaż', 'aczkolwiek', 'jakkolwiek', 'mimo że', 'mimo iż', 'pomimo że',
+    'więc', 'zatem', 'przeto', 'toteż', 'dlatego', 'stąd że',
+    'gdzie', 'skąd', 'dokąd', 'jak', 'jakby', 'jakoby',
+    'podczas gdy', 'jak tylko', 'chyba że', 'tak że', 'tak żeby',
+    'takie jak', 'takich jak', 'taki jak', 'taka jak',
+    'mimo to', 'pomimo to', 'pod warunkiem że', 'w miarę jak', 'skoro tylko',
+];
+
+// Introductory phrases followed by a comma when they open a sentence.
+export const INTRO_PHRASES = [
+    'ogólnie rzecz biorąc', 'nawiasem mówiąc', 'prawdę mówiąc',
+    'szczerze mówiąc', 'mówiąc wprost', 'krótko mówiąc', 'jednym słowem',
+    'innymi słowy', 'między innymi', 'na przykład', 'nota bene',
+    'przede wszystkim', 'po pierwsze', 'po drugie', 'po trzecie',
+    'po czwarte', 'po piąte',
+    'co więcej', 'co ważne', 'co ciekawe', 'co gorsza', 'co gorsze',
+    'oczywiście', 'niestety', 'owszem', 'otóż', 'mianowicie',
+];
+
+const QUESTION_START = /^(czy|kto|co|gdzie|kiedy|jak|dlaczego|ile|który|która|które|czemu|skąd|dokąd|po co|na ile)\b/i;
+
+// Contrasting or additive links: after a long enough clause they take a semicolon instead of a comma.
+export const SEMICOLON_LINKS = ['jednak', 'natomiast', 'tymczasem', 'niemniej', 'ponadto', 'zatem'];
+
+// Phrases that restate what was just said; a dash sets the explanation apart.
+export const DASH_PHRASES = ['czyli', 'to znaczy', 'inaczej mówiąc'];
+
+export const ENUMERATION = {
+    cues: ['takie jak', 'takich jak', 'taki jak', 'na przykład', 'między innymi', 'mianowicie', 'następujące', 'następujących'],
+    joiners: ['i', 'oraz', 'lub', 'albo', 'czy'],
+};
+
+export const PL = {
+    conjunctions: CONJUNCTIONS,
+    introPhrases: INTRO_PHRASES,
+    // [first half, second half, longest gap between them]
+    correlatives: [['zarówno', 'jak i', 80], ['ani', 'ani', 60]],
+    enumeration: ENUMERATION,
+    semicolons: { links: SEMICOLON_LINKS, minWords: 6, commaAfter: false },
+    dashes: { phrases: DASH_PHRASES, dash: ' – ' },
+    questionStart: QUESTION_START,
+};

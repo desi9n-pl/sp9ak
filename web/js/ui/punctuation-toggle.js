@@ -1,5 +1,5 @@
 import { STORAGE_KEYS } from '../config.js';
-import { punctuate } from '../core/punctuation.js';
+import { punctuate } from '../core/punctuation/index.js';
 import { byId } from './dom.js';
 
 /** The ✦ chip: switches automatic punctuation, or starts the Nano download when that is pending. */
@@ -13,9 +13,9 @@ export class PunctuationToggle {
         this.chip.addEventListener('click', () => this.#onClick());
     }
 
-    /** Punctuated text, or the input untouched when punctuation is switched off. */
-    apply(text) {
-        return this.enabled ? punctuate(text) : text;
+    /** Punctuated text in the rules of `language`, or the input untouched when punctuation is switched off. */
+    apply(text, language) {
+        return this.enabled ? punctuate(text, language) : text;
     }
 
     #onClick() {

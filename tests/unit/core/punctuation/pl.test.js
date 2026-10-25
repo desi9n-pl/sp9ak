@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CONJUNCTIONS, INTRO_PHRASES, capitalizeSentences, punctuate } from '../../../web/js/core/punctuation.js';
+import { punctuate } from '../../../../web/js/core/punctuation/index.js';
+import { CONJUNCTIONS, INTRO_PHRASES } from '../../../../web/js/core/punctuation/pl.js';
+import { capitalizeSentences } from '../../../../web/js/core/punctuation/shared.js';
 
 describe('capitalizeSentences', () => {
     it('capitalizes the first letter', () => {
@@ -123,5 +125,38 @@ describe('word lists', () => {
     it('have no duplicates', () => {
         expect(new Set(CONJUNCTIONS).size).toBe(CONJUNCTIONS.length);
         expect(new Set(INTRO_PHRASES).size).toBe(INTRO_PHRASES.length);
+    });
+});
+
+describe('semicolons, dashes and lists', () => {
+    it('uses a semicolon before jednak after a long clause', () => {
+        expect(punctuate('plan wyglądał dobrze na papierze od samego początku jednak w praktyce nie działał'))
+            .toBe('Plan wyglądał dobrze na papierze od samego początku; jednak w praktyce nie działał.');
+    });
+
+    it('keeps the comma before jednak after a short clause', () => {
+        expect(punctuate('chcę jednak nie mogę')).toBe('Chcę, jednak nie mogę.');
+    });
+
+    it('does not add a second semicolon in one sentence', () => {
+        const text = punctuate('plan wyglądał dobrze na papierze od samego początku jednak w praktyce nie działał natomiast koszty rosły');
+        expect(text.match(/;/g)).toHaveLength(1);
+    });
+
+    it('sets off a restatement with a dash', () => {
+        expect(punctuate('potrzebuję jednej rzeczy czyli czasu')).toBe('Potrzebuję jednej rzeczy – czyli czasu.');
+    });
+
+    it('makes a comma list after a cue', () => {
+        expect(punctuate('lubię owoce takie jak jabłka gruszki śliwki i wiśnie'))
+            .toBe('Lubię owoce, takie jak jabłka, gruszki, śliwki i wiśnie.');
+    });
+
+    it('does not split a two-item list', () => {
+        expect(punctuate('lubię owoce takie jak jabłka i wiśnie')).toBe('Lubię owoce, takie jak jabłka i wiśnie.');
+    });
+
+    it('leaves an existing list alone', () => {
+        expect(punctuate('lubię takie jak jabłka, gruszki, śliwki i wiśnie')).not.toContain(',,');
     });
 });
