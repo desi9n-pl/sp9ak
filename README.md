@@ -264,6 +264,9 @@ npm run test:py           # testy Pythona
 npm run test:e2e          # scenariusze w prawdziwym Chrome (wymaga /usr/bin/google-chrome lub CHROME_PATH)
 npm run test:monkey       # losowe klikanie (gremlins.js); GREMLINS_SEEDS="1,2" GREMLINS_ACTIONS=2000
 npm run test:layout       # losowe klikanie w kilku rozmiarach okna + kontrola układu (gremlins.js)
+npm run test:a11y         # pa11y (WCAG 2 AA, axe + HTML_CodeSniffer) w trzech motywach i kilku stanach okna
+npm run test:lighthouse   # Lighthouse (desktop): wydajność, dostępność, dobre praktyki, SEO; progi LH_MIN_PERFORMANCE itd.
+npm run test:quality      # oba powyższe
 npm run lint              # eslint + ruff (ruff w venv, patrz CONTRIBUTING.md#środowisko)
 npm run test:all          # wszystko powyżej poza lintem
 ```

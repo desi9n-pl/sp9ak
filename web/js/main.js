@@ -24,6 +24,7 @@ import { LanguageToggle } from './ui/language-toggle.js';
 import { LogsView } from './ui/logs-view.js';
 import { PanelManager } from './ui/panels.js';
 import { PinButton } from './ui/pin-button.js';
+import { installPointerFocus } from './ui/pointer-focus.js';
 import { PunctuationToggle } from './ui/punctuation-toggle.js';
 import { SemanticView } from './ui/semantic-view.js';
 import { installShortcuts } from './ui/shortcuts.js';
@@ -40,6 +41,7 @@ const log = new Logger();
 const toast = new Toast();
 const status = new StatusBar();
 const editor = new Editor();
+installPointerFocus({ editor });
 const corrected = new CorrectedPane({ toast });
 const history = new SessionHistory({ storage });
 

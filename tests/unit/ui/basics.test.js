@@ -87,12 +87,11 @@ describe('Toast', () => {
 });
 
 describe('StatusBar', () => {
-    it('shows text and hides the shortcut hint while active', () => {
+    it('shows text and the recording dot while active', () => {
         const status = new StatusBar();
         status.set('Słucham…', true);
         expect($('msg').textContent).toBe('Słucham…');
         expect($('dot').classList.contains('on')).toBe(true);
-        expect($('kbdHint').hidden).toBe(true);
     });
 
     it('returns to idle', () => {
@@ -101,7 +100,6 @@ describe('StatusBar', () => {
         status.idle();
         expect($('msg').textContent).toBe('Gotowy');
         expect($('dot').classList.contains('on')).toBe(false);
-        expect($('kbdHint').hidden).toBe(false);
     });
 });
 

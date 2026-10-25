@@ -12,7 +12,6 @@ export class DictationButton {
         if (!dictation.supported) {
             status.set('Przeglądarka nie obsługuje rozpoznawania mowy');
             this.button.disabled = true;
-            byId('kbdHint').hidden = true;
             return;
         }
         this.button.addEventListener('click', () => dictation.toggle());
