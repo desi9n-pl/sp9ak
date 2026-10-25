@@ -267,7 +267,7 @@ npm run test:layout       # losowe klikanie w kilku rozmiarach okna + kontrola u
 npm run test:a11y         # pa11y (WCAG 2 AA, axe + HTML_CodeSniffer) w trzech motywach i kilku stanach okna
 npm run test:lighthouse   # Lighthouse (desktop): wydajność, dostępność, dobre praktyki, SEO; progi LH_MIN_PERFORMANCE itd.
 npm run test:quality      # oba powyższe
-npm run lint              # eslint + ruff
+npm run lint              # eslint + ruff (ruff w venv, patrz CONTRIBUTING.md#środowisko)
 npm run test:all          # wszystko powyżej poza lintem
 ```
 
