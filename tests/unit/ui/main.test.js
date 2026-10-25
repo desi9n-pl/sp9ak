@@ -116,8 +116,18 @@ describe('the assembled page', () => {
         key(document, { key: 'n', ctrlKey: true });
         click($('historyBtn'));
         click(document.querySelector('.sess-body'));
-        expect($('output').value).toBe('Stara notatka z historii');
+        expect($('output').value).toBe('Stara notatka z historii ');
         expect($('historyPanel').classList.contains('open')).toBe(false);
+    });
+
+    it('dictating after loading a session does not glue the new word to the last one', async () => {
+        await startApp();
+        await dictate('stara notatka z historii');
+        key(document, { key: 'n', ctrlKey: true });
+        click($('historyBtn'));
+        click(document.querySelector('.sess-body'));
+        await dictate('dopisek');
+        expect($('output').value).toBe('Stara notatka z historii dopisek ');
     });
 
     it('Ctrl+D toggles dictation', async () => {

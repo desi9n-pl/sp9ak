@@ -193,7 +193,7 @@ try {
         await page.click('#historyBtn');
         await page.click('.sess-body');
         await dictate(page, 'dopisek');
-        assert.match(await page.inputValue('#output'), /^Stara notatka testowa\s*dopisek\s*$/);
+        assert.match(await page.inputValue('#output'), /^Stara notatka testowa dopisek\s*$/);
         await ctx.close();
     });
 
