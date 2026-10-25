@@ -17,6 +17,10 @@ describe('capitalizeSentences', () => {
         expect(capitalizeSentences(input)).toBe(expected);
     });
 
+    it('capitalizes after a line break', () => {
+        expect(capitalizeSentences('przygotować się\n tc marketingowe')).toBe('Przygotować się\n Tc marketingowe');
+    });
+
     it('keeps existing capitals and mid-sentence words', () => {
         expect(capitalizeSentences('Jan kowalski. Anna nowak')).toBe('Jan kowalski. Anna nowak');
     });

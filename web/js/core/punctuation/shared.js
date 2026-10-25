@@ -82,7 +82,8 @@ export function tidySpacing(text) {
 export function capitalizeSentences(text) {
     if (!text) return text;
     const capitalized = text[0].toUpperCase() + text.slice(1);
-    return capitalized.replace(/([.!?][ \u00a0]+)(\p{Ll})/gu, (_, end, letter) => end + letter.toUpperCase());
+    // a line break opens a new sentence just like a full stop does
+    return capitalized.replace(/([.!?][ \u00a0]+|\n[ \t\u00a0]*)(\p{Ll})/gu, (_, end, letter) => end + letter.toUpperCase());
 }
 
 /**
