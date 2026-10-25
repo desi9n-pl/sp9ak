@@ -14,6 +14,8 @@ export class PinButton {
         this.toolbar = byId('toolbar');
         this.pinned = false;
         this.button.addEventListener('click', () => this.toggle());
+        // the window manager can change the state behind our back (title bar menu, keyboard shortcut)
+        window.addEventListener('focus', () => this.refresh());
     }
 
     /**
@@ -30,6 +32,16 @@ export class PinButton {
         }
         if (attempt < MAX_ATTEMPTS) setTimeout(() => this.load(attempt + 1), RETRY_MS);
         else this.#settle();
+    }
+
+    /** Re-reads the real state once pinning is known to work here. */
+    async refresh() {
+        if (this.button.hidden) return;
+        try {
+            this.#render(await (await this.#fetch('/api/window', { cache: 'no-store' })).json());
+        } catch {
+            // keep what is shown
+        }
     }
 
     async toggle() {

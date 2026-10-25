@@ -222,6 +222,16 @@ describe('PinButton', () => {
         expect($('pinBtn').hidden).toBe(true);
     });
 
+    it('re-reads the real state when the window regains focus', async () => {
+        const fetchFn = vi.fn()
+            .mockResolvedValueOnce({ json: async () => ({ supported: true, alwaysOnTop: false }) })
+            .mockResolvedValue({ json: async () => ({ supported: true, alwaysOnTop: true }) });
+        await new PinButton({ toast: { show: vi.fn() }, fetchFn }).load();
+        expect($('pinBtn').getAttribute('aria-pressed')).toBe('false');
+        window.dispatchEvent(new Event('focus'));
+        await vi.waitFor(() => expect($('pinBtn').getAttribute('aria-pressed')).toBe('true'));
+    });
+
     it('keeps asking until the window manager lists the window', async () => {
         vi.useFakeTimers();
         const fetchFn = vi.fn()
