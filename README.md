@@ -299,7 +299,7 @@ scripts/install-shortcut.sh --desktop   # dodatkowo ikona na pulpicie
 scripts/install-shortcut.sh --uninstall # usuwa oba
 ```
 
-Skrót wskazuje na `sp9ak.sh` w katalogu projektu, więc po przeniesieniu repo uruchom skrypt ponownie. W katalogu `scripts/` trzymamy tego typu skrypty instalacyjne.
+Skrót wskazuje na `sp9ak.sh` w katalogu projektu, więc po przeniesieniu repo uruchom skrypt ponownie. Ponowne kliknięcie skrótu przy działającej aplikacji tylko wysuwa jej okno (nie restartuje serwera). W katalogu `scripts/` trzymamy tego typu skrypty instalacyjne.
 
 ## Instalacja w systemie (pakiet .deb)
 
