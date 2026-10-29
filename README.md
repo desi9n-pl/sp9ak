@@ -244,6 +244,7 @@ Przyciski filtrów pozwalają wyświetlić tylko błędy lub tylko zaliczone prz
 │   └── nano-check/       # strona do ręcznego sprawdzenia jakości korekty Gemini Nano
 ├── server/               # serwer HTTP: pliki statyczne, /api/sessions, /api/ai (proxy), /api/hotkey
 ├── desktop/              # integracja z pulpitem X11: ikona w trayu, pozycja okna, skrót globalny
+├── scripts/              # skrypty instalacyjne (skrót w menu i na pulpicie)
 ├── tests/
 │   ├── unit/             # vitest (jsdom): core, services, ui
 │   ├── python/           # unittest: serwer, dostawcy AI, X11, skrót
@@ -287,6 +288,18 @@ feature/*, fix/*, docs/*  →  dev  →  release/YYYY-MM-DD  →  main (tag vYYY
 Na `release/YYYY-MM-DD` są tylko poprawki stabilizujące i pełne testy (`lint`, `test`, `test:py`, `test:e2e`, `test:monkey`, `packaging/build-deb.sh`). Wersje próbne mają tag `vYYYY.MM.DD-rc.N`. Szczegóły dla współautorów i agentów AI: [AGENTS.md](AGENTS.md#wydania).
 
 ---
+
+## Skrót w menu i na pulpicie (bez pakietu)
+
+Dla sklonowanego repo wystarczy jedno polecenie, bez `sudo` i bez `.deb`:
+
+```bash
+scripts/install-shortcut.sh             # skrót w menu aplikacji (wyszukiwarka programów)
+scripts/install-shortcut.sh --desktop   # dodatkowo ikona na pulpicie
+scripts/install-shortcut.sh --uninstall # usuwa oba
+```
+
+Skrót wskazuje na `sp9ak.sh` w katalogu projektu, więc po przeniesieniu repo uruchom skrypt ponownie. Ponowne kliknięcie skrótu przy działającej aplikacji tylko wysuwa jej okno (nie restartuje serwera). W katalogu `scripts/` trzymamy tego typu skrypty instalacyjne.
 
 ## Instalacja w systemie (pakiet .deb)
 
