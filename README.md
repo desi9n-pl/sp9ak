@@ -352,3 +352,5 @@ Nieznany język używa reguł polskich. Nowy język to nowy plik z regułami i w
 ## Licencja
 
 MIT, Copyright (c) 2026 desi9n.pl. Szczegóły w pliku [LICENSE](LICENSE).
+
+Jeśli tworzysz fork lub pochodną wersję projektu, musisz zachować informację o autorstwie **desi9n.pl** (nota o prawach autorskich i treść licencji MIT z pliku [LICENSE](LICENSE)) oraz wskazać oryginalne repozytorium. Zmiany w repozytorium przyjmujemy wyłącznie od zespołu; pull requesty i zgłoszenia od osób z zewnątrz są wyłączone.
