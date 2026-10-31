@@ -57,7 +57,7 @@ beforeEach(() => {
     recognition = new FakeRecognition();
     dictation = new Dictation({ editor, createRecognition: () => recognition });
     events = {};
-    ['status', 'started', 'stopped', 'toast', 'finished'].forEach(record);
+    ['status', 'started', 'stopped', 'toast', 'finished', 'began', 'ended'].forEach(record);
 });
 afterEach(() => vi.useRealTimers());
 
@@ -454,6 +454,57 @@ describe('network trouble', () => {
         dictation.stop();
         vi.advanceTimersByTime(10_000);
         expect(recognition.starts).toBe(1);
+    });
+});
+
+describe('began and ended (one pair per dictation, for the sound cues)', () => {
+    it('come once even when the engine restarts by itself', () => {
+        dictation.start();
+        recognition.end();
+        recognition.end();
+        expect(events.started).toHaveLength(3);
+        expect(events.began).toHaveLength(1);
+        dictation.stop();
+        recognition.end();
+        expect(events.ended).toEqual([{ failed: false }]);
+    });
+
+    it('come again for the next dictation', () => {
+        for (let i = 0; i < 2; i++) {
+            dictation.start();
+            dictation.stop();
+            recognition.end();
+        }
+        expect(events.began).toHaveLength(2);
+        expect(events.ended).toHaveLength(2);
+    });
+
+    it('end once, as failed, after a fatal error', () => {
+        dictation.start();
+        recognition.fail('not-allowed');
+        recognition.end();
+        expect(events.ended).toEqual([{ failed: true }]);
+        dictation.start();
+        dictation.stop();
+        recognition.end();
+        expect(events.ended.at(-1)).toEqual({ failed: false });
+    });
+
+    it('end as failed when the network keeps failing', () => {
+        dictation.start();
+        for (let i = 0; i < 5; i++) {
+            recognition.fail('network');
+            recognition.end();
+            vi.advanceTimersByTime(10_000);
+        }
+        expect(events.ended).toEqual([{ failed: true }]);
+    });
+
+    it('end as failed when the microphone cannot start', () => {
+        recognition.start = () => { throw new Error('busy'); };
+        dictation.start();
+        expect(events.began).toHaveLength(0);
+        expect(events.ended).toEqual([{ failed: true }]);
     });
 });
 
