@@ -238,8 +238,8 @@ Przyciski filtrów pozwalają wyświetlić tylko błędy lub tylko zaliczone prz
 │   ├── css/              # motywy, układ, kontrolki, panele, modal
 │   ├── js/
 │   │   ├── main.js       # składa aplikację z poniższych modułów
-│   │   ├── core/         # czysta logika bez DOM: interpunkcja (punctuation/: pl.js, en.js, shared.js), odcinek mowy, parsowanie korekty…
-│   │   ├── services/     # dyktowanie, Gemini Nano, zewnętrzne AI, historia sesji, skrót globalny
+│   │   ├── core/         # czysta logika bez DOM: interpunkcja (punctuation/: pl.js, en.js, shared.js), odcinek mowy, parsowanie korekty, definicje sygnałów dźwiękowych…
+│   │   ├── services/     # dyktowanie, Gemini Nano, zewnętrzne AI, historia sesji, skrót globalny, odtwarzacz dźwięków
 │   │   └── ui/           # cienkie widoki DOM (panele, historia, przyciski, przebieg audio…)
 │   └── nano-check/       # strona do ręcznego sprawdzenia jakości korekty Gemini Nano
 ├── server/               # serwer HTTP: pliki statyczne, /api/sessions, /api/ai (proxy), /api/hotkey
@@ -315,6 +315,26 @@ Aplikacja pojawi się w menu systemowym w kategorii **Biuro** (polecenie `sp9ak`
 ## WIELKIE LITERY dla głośniejszych fraz
 
 Chip **Aa** na dolnym pasku (domyślnie wyłączony) włącza analizę głośności głosu. Aplikacja uczy się Twojego zwykłego poziomu (po kilku pierwszych frazach), a fraza wypowiedziana wyraźnie głośniej (ok. 1,5× średniej) zostanie zapisana wielkimi literami. Rozpoznawanie działa na całych frazach, nie na pojedynczych słowach.
+
+## Sygnały dźwiękowe
+
+Aplikacja odpowiada krótkimi, cichymi sygnałami generowanymi w przeglądarce (Web Audio API, bez plików dźwiękowych). Domyślnie są włączone. Wyłączysz je w **Motyw i ustawienia** → **Dźwięki**.
+
+| Akcja | Sygnał |
+|---|---|
+| Start dyktowania (mikrofon już słucha) | dwa tony w górę |
+| Koniec dyktowania | dwa tony w dół |
+| Dyktowanie przerwane błędem, błąd AI, nieudany test klucza | dwa niskie tony |
+| Skopiowano, klucz działa, korekta bez uwag, zastosowano korektę, połączenie wróciło | jasny dwudźwięk w górę |
+| Korekta semantyczna znalazła podejrzane słowa | pojedynczy ton |
+| Brak internetu | dwa tony w dół, ciszej |
+| Nowa notatka | krótkie arpeggio w górę |
+| Usunięcie sesji, czyszczenie historii lub logów, usunięcie klucza | dwa niskie tony w dół |
+| Włączenie / wyłączenie opcji (✦, Aa, przypięcie, logi, sugestia) | wyższe / niższe tyknięcie |
+| Wybór (motyw, język, sesja z historii, dostawca AI) | ciche tyknięcie |
+| Otwarcie / zamknięcie panelu | bardzo ciche tony w górę / w dół |
+
+Gdy jedna akcja zmienia kilka rzeczy naraz (np. otwarcie panelu zamyka inny), gra tylko najważniejszy sygnał. `sp9ak.sh` uruchamia Chrome z `--autoplay-policy=no-user-gesture-required`, żeby sygnał zabrzmiał także przy starcie dyktowania globalnym skrótem, zanim klikniesz w okno.
 
 ## Globalny skrót systemowy (X11)
 

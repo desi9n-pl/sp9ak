@@ -1,3 +1,4 @@
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -6,7 +7,8 @@ const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabi
 export class InstallModal {
     #opener = null;
 
-    constructor() {
+    constructor({ sound = SILENT } = {}) {
+        this.sound = sound;
         this.backdrop = byId('installModal');
         this.dialog = this.backdrop.querySelector('.modal');
         byId('installGeminiBtn').addEventListener('click', () => this.open());
@@ -20,12 +22,14 @@ export class InstallModal {
     open() {
         this.#opener = document.activeElement;
         this.backdrop.classList.add('open');
+        this.sound.play('open');
         this.dialog.focus();
     }
 
     close() {
         if (!this.backdrop.classList.contains('open')) return;
         this.backdrop.classList.remove('open');
+        this.sound.play('close');
         this.#opener?.focus?.();
         this.#opener = null;
     }

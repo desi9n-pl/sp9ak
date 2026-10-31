@@ -1,5 +1,6 @@
 import { buildSemanticText, parseSemanticResponse } from '../core/semantic.js';
 import { classifyError } from '../core/providers.js';
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 const NO_AI_NOTICE_MS = 6000;
@@ -11,8 +12,8 @@ const NO_AI_NOTICE_MS = 6000;
 export class SemanticView {
     #segments = [];
 
-    constructor({ ai, editor, panels, status, toast, log, isDictating, onApply }) {
-        Object.assign(this, { ai, editor, panels, status, toast, log, isDictating, onApply });
+    constructor({ ai, editor, panels, status, toast, log, isDictating, onApply, sound = SILENT }) {
+        Object.assign(this, { ai, editor, panels, status, toast, log, isDictating, onApply, sound });
         this.content = byId('semanticContent');
         this.empty = byId('semanticEmpty');
 
@@ -39,6 +40,7 @@ export class SemanticView {
         this.panels.closeAll();
 
         if (!(await this.ai.canReview())) {
+            this.sound.play('error');
             this.status.set('⚠ Brak AI – skonfiguruj zewnętrzne AI (Claude/OpenAI) lub zainstaluj Gemini Nano');
             setTimeout(() => this.#idle(), NO_AI_NOTICE_MS);
             return;
@@ -64,6 +66,7 @@ export class SemanticView {
         } catch (err) {
             this.log.err(`session.prompt błąd: ${err.name}: ${err.message}`, err.stack);
             this.content.textContent = this.#describeError(err);
+            this.sound.play('error');
         }
         this.#idle();
     }
@@ -84,6 +87,8 @@ export class SemanticView {
         const suspects = this.#segments.filter(s => s.kind === 'suspect').length;
         this.content.hidden = suspects === 0;
         this.empty.hidden = suspects > 0;
+        // something to look at, or nothing to fix
+        this.sound.play(suspects ? 'notice' : 'success');
         this.log.add(suspects ? 'warn' : 'ok', `Znaleziono ${suspects} podejrzanych słów`);
     }
 
@@ -120,14 +125,18 @@ export class SemanticView {
         const suggestion = event.target.closest('.suspect-sug');
         const original = event.target.closest('.suspect-orig');
         if (suggestion) {
-            this.#setAccepted(suggestion, !this.#segments[suggestion.dataset.idx].accepted);
+            const accepted = !this.#segments[suggestion.dataset.idx].accepted;
+            this.#setAccepted(suggestion, accepted);
+            this.sound.play(accepted ? 'on' : 'off');
         } else if (original?.classList.contains('accepted')) {
             this.#setAccepted(original, false);
+            this.sound.play('off');
         }
     }
 
     #acceptAll() {
         this.content.querySelectorAll('.suspect-sug:not(.accepted)').forEach(span => this.#setAccepted(span, true));
+        this.sound.play('on');
     }
 
     #setRestorable(original, restorable) {

@@ -66,6 +66,7 @@ main() {
         --user-data-dir="$PROFILE" \
         --no-default-browser-check \
         --no-first-run \
+        --autoplay-policy=no-user-gesture-required \
         --window-size=$WIN_W,$WIN_H \
         --window-position=$WIN_POS \
         --enable-features=PromptAPIForGeminiNano,OptimizationGuideOnDeviceModel:bypass_perf_requirement/true \

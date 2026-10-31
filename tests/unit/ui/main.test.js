@@ -185,6 +185,36 @@ describe('the assembled page', () => {
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Tekst do skopiowania ');
     });
 
+    it('beeps when dictation starts and ends, unless sounds are switched off', async () => {
+        const played = [];
+        window.AudioContext = class {
+            state = 'running';
+            currentTime = 0;
+            destination = {};
+            createOscillator() {
+                const frequency = { value: 0 };
+                return { frequency, connect: node => node, start: () => played.push(frequency.value), stop() {} };
+            }
+            createGain() {
+                const ramp = () => {};
+                return { gain: { setValueAtTime: ramp, linearRampToValueAtTime: ramp, exponentialRampToValueAtTime: ramp }, connect: node => node };
+            }
+        };
+        try {
+            await startApp();
+            await dictate('test dźwięku');
+            // rising pair, then the same pair falling
+            expect(played).toEqual([660, 880, 880, 660]);
+
+            played.length = 0;
+            $('soundToggle').click();
+            await dictate('cisza');
+            expect(played).toEqual([]);
+        } finally {
+            delete window.AudioContext;
+        }
+    });
+
     it('works without speech recognition', async () => {
         delete window.SpeechRecognition;
         await startApp();

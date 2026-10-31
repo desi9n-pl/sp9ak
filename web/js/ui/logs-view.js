@@ -1,10 +1,12 @@
 import { STORAGE_KEYS } from '../config.js';
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 /** Diagnostic log panel. Hidden unless switched on in settings. */
 export class LogsView {
-    constructor({ log, panels, storage }) {
+    constructor({ log, panels, storage, sound = SILENT }) {
         this.log = log;
+        this.sound = sound;
         this.panels = panels;
         this.storage = storage;
         this.button = byId('logsBtn');
@@ -16,9 +18,13 @@ export class LogsView {
         this.toggle.addEventListener('change', () => {
             storage.set(STORAGE_KEYS.logsVisible, this.toggle.checked ? 'on' : 'off');
             this.setVisible(this.toggle.checked);
+            sound.play(this.toggle.checked ? 'on' : 'off');
         });
         byId('copyLogsBtn').addEventListener('click', event => this.#copy(event.currentTarget));
-        byId('clearLogsBtn').addEventListener('click', () => log.clear());
+        byId('clearLogsBtn').addEventListener('click', () => {
+            log.clear();
+            sound.play('remove');
+        });
         log.on('change', () => this.#render());
         panels.on('open', name => name === 'logs' && this.#render());
     }
@@ -52,6 +58,7 @@ export class LogsView {
         } catch {
             // clipboard blocked: the confirmation below would be misleading, but the log stays visible
         }
+        this.sound.play('success');
         button.textContent = '✓ Skopiowano';
         setTimeout(() => { button.textContent = 'Kopiuj logi'; }, 2000);
     }
