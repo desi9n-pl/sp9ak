@@ -147,6 +147,47 @@ try {
         await ctx.close();
     });
 
+    await check('caret: a thick bar follows the caret and hides on selection and blur', async () => {
+        const { page, ctx } = await dictPage();
+        const bar = () => page.evaluate(() => {
+            const el = document.querySelector('.thick-caret');
+            const box = el.getBoundingClientRect();
+            return { hidden: el.hidden, x: box.left, y: box.top, width: box.width, height: box.height };
+        });
+        const settle = () => page.waitForTimeout(100);
+        await page.click('#typeBtn');
+        await settle();
+        const start = await bar();
+        assert.equal(start.hidden, false);
+        assert.ok(start.width >= 2, `width ${start.width}`);
+        assert.ok(start.height > 10, `height ${start.height}`);
+
+        await page.keyboard.type('Ala ma kota');
+        await settle();
+        const typed = await bar();
+        assert.ok(typed.x > start.x + 40, `x ${start.x} -> ${typed.x}`);
+        assert.equal(typed.y, start.y);
+
+        await page.keyboard.press('Enter');
+        await settle();
+        const newLine = await bar();
+        assert.equal(newLine.x, start.x);
+        assert.ok(newLine.y > start.y + 10, `y ${start.y} -> ${newLine.y}`);
+
+        await page.keyboard.press('ArrowLeft');
+        await page.keyboard.press('Shift+ArrowLeft');
+        await settle();
+        assert.equal((await bar()).hidden, true);
+
+        await page.keyboard.press('ArrowRight');
+        await settle();
+        assert.equal((await bar()).hidden, false);
+        await page.evaluate(() => document.getElementById('output').blur());
+        await settle();
+        assert.equal((await bar()).hidden, true);
+        await ctx.close();
+    });
+
     await check('editing the top field refreshes the bottom one after a few seconds', async () => {
         const { page, ctx } = await dictPage();
         await dictate(page, 'pierwszy tekst');
