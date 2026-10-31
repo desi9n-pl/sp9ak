@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../web/js/services/logger.js';
 import { MAX_LENGTH, ThickCaret } from '../../../web/js/ui/thick-caret.js';
 import { $, mountPage } from './fixture.js';
@@ -16,6 +16,7 @@ beforeEach(() => {
     log = new Logger();
     caret = new ThickCaret($('output'), { log });
 });
+afterEach(() => vi.restoreAllMocks());
 
 describe('thick caret', () => {
     it('hides the native caret and adds a bar next to the field', () => {
@@ -48,6 +49,23 @@ describe('thick caret', () => {
         $('output').focus();
         await new Promise(resolve => setTimeout(resolve, 50));
         expect(caret.bar.hidden).toBe(false);
+    });
+
+    it('is drawn where drawAt says, within the text, instead of at the field caret', () => {
+        let drawAt = 4;
+        const measured = [];
+        vi.spyOn(Range.prototype, 'setStart').mockImplementation((node, offset) => measured.push(offset));
+        vi.spyOn(Range.prototype, 'setEnd').mockImplementation(() => {});
+        const drawn = new ThickCaret($('output'), { drawAt: () => drawAt });
+        $('output').value = 'Ala ma kota';
+        $('output').focus();
+        $('output').setSelectionRange(1, 1);
+        drawn.update();
+        drawAt = 99;
+        drawn.update();
+        drawAt = null;
+        drawn.update();
+        expect(measured).toEqual([4, 0, 1]);
     });
 
     it('keeps its copy of the text in step with edits anywhere in the field', () => {

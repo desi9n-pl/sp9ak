@@ -61,9 +61,14 @@
 .lang-chip:hover { background: var(--btn-hover); }
 .lang-chip.en { color: var(--accent-text); border-color: var(--accent); }
 
-/* The ✦ chip carries a small badge for the state of the AI model. */
-#punctToggle.active { color: var(--accent-text); border-color: var(--accent); }
-#punctToggle::after { margin-left: 2px; font-size: 12px; }
+/* On/off chips: switched on they are filled with the accent, so the state is clear at a glance. */
+.lang-chip[aria-pressed="true"],
+.btn-tiny[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.lang-chip[aria-pressed="true"]:hover,
+.btn-tiny[aria-pressed="true"]:hover { background: var(--accent-h); border-color: var(--accent-h); color: #fff; }
+
+/* The ✦ chip carries a small badge for the state of the AI model, on its own background to stay readable when the chip is filled. */
+#punctToggle::after { margin-left: 4px; padding: 0 3px; border-radius: 4px; background: var(--surface); font-size: 12px; }
 #punctToggle[data-ai="on"]::after { content: 'AI'; color: var(--ok); }
 #punctToggle[data-ai="dl"]::after { content: '↓'; color: var(--warn); }
 #punctToggle[data-ai="off"]::after { content: '⚠'; color: var(--danger); }
@@ -107,5 +112,4 @@
     color: var(--muted);
 }
 .btn-tiny:hover { background: var(--btn-hover); color: var(--accent-text); }
-.btn-tiny.active { border-color: var(--accent); color: var(--accent-text); }
 .btn-tiny { justify-content: center; min-width: 24px; min-height: 24px; }

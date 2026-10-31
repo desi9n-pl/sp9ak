@@ -46,7 +46,7 @@ const log = new Logger();
 const toast = new Toast();
 const status = new StatusBar();
 const editor = new Editor();
-new ThickCaret(editor.el, { log });
+new ThickCaret(editor.el, { log, drawAt: () => dictation.interimEnd });
 installPointerFocus({ editor });
 const corrected = new CorrectedPane({ toast });
 const history = new SessionHistory({ storage });
