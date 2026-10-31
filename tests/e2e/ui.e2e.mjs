@@ -1,7 +1,7 @@
 /* E2E: user interface behaviour: themes, history, panels, semantic review, Gemini Nano status.
    Written before the refactoring to pin down what the app does. */
 import assert from 'node:assert/strict';
-import { start, finish, check, dictPage, toggleDictation } from './helpers.mjs';
+import { start, finish, check, dictPage, toggleDictation, FAKE_AUDIO } from './helpers.mjs';
 
 /* Gemini Nano stand-in; window.__nanoReply sets the model's answer. */
 const FAKE_NANO = () => {
@@ -110,6 +110,22 @@ try {
         await toggleDictation(page);
         assert.equal(await page.textContent('#dictLabel'), 'Dyktuj');
         assert.equal(await page.textContent('#msg'), 'Gotowy');
+        await ctx.close();
+    });
+
+    await check('sounds: dictation beeps up and down; switched off they stay off after a reload', async () => {
+        const { page, ctx } = await dictPage({ sounds: true, initScripts: [FAKE_AUDIO] });
+        await toggleDictation(page);
+        await toggleDictation(page);
+        assert.deepEqual(await page.evaluate(() => window.__tones), [660, 880, 880, 660]);
+
+        await page.click('#settingsBtn');
+        await page.uncheck('#soundToggle');
+        await page.reload();
+        assert.equal(await page.isChecked('#soundToggle'), false);
+        await toggleDictation(page);
+        await toggleDictation(page);
+        assert.deepEqual(await page.evaluate(() => window.__tones), []);
         await ctx.close();
     });
 

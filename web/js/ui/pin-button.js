@@ -1,3 +1,4 @@
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 const RETRY_MS = 1000;
@@ -7,8 +8,9 @@ const MAX_ATTEMPTS = 15;
 export class PinButton {
     #fetch;
 
-    constructor({ toast, fetchFn = (...args) => globalThis.fetch(...args) }) {
+    constructor({ toast, sound = SILENT, fetchFn = (...args) => globalThis.fetch(...args) }) {
         this.toast = toast;
+        this.sound = sound;
         this.#fetch = fetchFn;
         this.button = byId('pinBtn');
         this.toolbar = byId('toolbar');
@@ -52,7 +54,9 @@ export class PinButton {
                 body: JSON.stringify({ alwaysOnTop: !this.pinned }),
             });
             this.#render(await response.json());
+            this.sound.play(this.pinned ? 'on' : 'off');
         } catch {
+            this.sound.play('error');
             this.toast.show('Nie udało się zmienić przypięcia okna');
         }
     }

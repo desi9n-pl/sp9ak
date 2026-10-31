@@ -238,12 +238,13 @@ Przyciski filtrów pozwalają wyświetlić tylko błędy lub tylko zaliczone prz
 │   ├── css/              # motywy, układ, kontrolki, panele, modal
 │   ├── js/
 │   │   ├── main.js       # składa aplikację z poniższych modułów
-│   │   ├── core/         # czysta logika bez DOM: interpunkcja (punctuation/: pl.js, en.js, shared.js), odcinek mowy, parsowanie korekty…
-│   │   ├── services/     # dyktowanie, Gemini Nano, zewnętrzne AI, historia sesji, skrót globalny
+│   │   ├── core/         # czysta logika bez DOM: interpunkcja (punctuation/: pl.js, en.js, shared.js), odcinek mowy, parsowanie korekty, definicje sygnałów dźwiękowych…
+│   │   ├── services/     # dyktowanie, Gemini Nano, zewnętrzne AI, historia sesji, skrót globalny, odtwarzacz dźwięków
 │   │   └── ui/           # cienkie widoki DOM (panele, historia, przyciski, przebieg audio…)
 │   └── nano-check/       # strona do ręcznego sprawdzenia jakości korekty Gemini Nano
 ├── server/               # serwer HTTP: pliki statyczne, /api/sessions, /api/ai (proxy), /api/hotkey
 ├── desktop/              # integracja z pulpitem X11: ikona w trayu, pozycja okna, skrót globalny
+├── scripts/              # skrypty instalacyjne (skrót w menu i na pulpicie)
 ├── tests/
 │   ├── unit/             # vitest (jsdom): core, services, ui
 │   ├── python/           # unittest: serwer, dostawcy AI, X11, skrót
@@ -288,6 +289,18 @@ Na `release/YYYY-MM-DD` są tylko poprawki stabilizujące i pełne testy (`lint`
 
 ---
 
+## Skrót w menu i na pulpicie (bez pakietu)
+
+Dla sklonowanego repo wystarczy jedno polecenie, bez `sudo` i bez `.deb`:
+
+```bash
+scripts/install-shortcut.sh             # skrót w menu aplikacji (wyszukiwarka programów)
+scripts/install-shortcut.sh --desktop   # dodatkowo ikona na pulpicie
+scripts/install-shortcut.sh --uninstall # usuwa oba
+```
+
+Skrót wskazuje na `sp9ak.sh` w katalogu projektu, więc po przeniesieniu repo uruchom skrypt ponownie. Ponowne kliknięcie skrótu przy działającej aplikacji tylko wysuwa jej okno (nie restartuje serwera). W katalogu `scripts/` trzymamy tego typu skrypty instalacyjne.
+
 ## Instalacja w systemie (pakiet .deb)
 
 To dodatkowa, opcjonalna możliwość. Aplikację nadal można po prostu sklonować i uruchomić przez `./sp9ak.sh` (Krok 4), bez instalowania czegokolwiek w systemie; wtedy profil i historia zostają w katalogu projektu. Pakiet jest dla osób, które wolą uruchamiać aplikację z menu systemowego zamiast z terminala.
@@ -303,6 +316,26 @@ Aplikacja pojawi się w menu systemowym w kategorii **Biuro** (polecenie `sp9ak`
 
 Chip **Aa** na dolnym pasku (domyślnie wyłączony) włącza analizę głośności głosu. Aplikacja uczy się Twojego zwykłego poziomu (po kilku pierwszych frazach), a fraza wypowiedziana wyraźnie głośniej (ok. 1,5× średniej) zostanie zapisana wielkimi literami. Rozpoznawanie działa na całych frazach, nie na pojedynczych słowach.
 
+## Sygnały dźwiękowe
+
+Aplikacja odpowiada krótkimi, cichymi sygnałami generowanymi w przeglądarce (Web Audio API, bez plików dźwiękowych). Domyślnie są włączone. Wyłączysz je w **Motyw i ustawienia** → **Dźwięki**.
+
+| Akcja | Sygnał |
+|---|---|
+| Start dyktowania (mikrofon już słucha) | dwa tony w górę |
+| Koniec dyktowania | dwa tony w dół |
+| Dyktowanie przerwane błędem, błąd AI, nieudany test klucza | dwa niskie tony |
+| Skopiowano, klucz działa, korekta bez uwag, zastosowano korektę, połączenie wróciło | jasny dwudźwięk w górę |
+| Korekta semantyczna znalazła podejrzane słowa | pojedynczy ton |
+| Brak internetu | dwa tony w dół, ciszej |
+| Nowa notatka | krótkie arpeggio w górę |
+| Usunięcie sesji, czyszczenie historii lub logów, usunięcie klucza | dwa niskie tony w dół |
+| Włączenie / wyłączenie opcji (✦, Aa, przypięcie, logi, sugestia) | wyższe / niższe tyknięcie |
+| Wybór (motyw, język, sesja z historii, dostawca AI) | ciche tyknięcie |
+| Otwarcie / zamknięcie panelu | bardzo ciche tony w górę / w dół |
+
+Gdy jedna akcja zmienia kilka rzeczy naraz (np. otwarcie panelu zamyka inny), gra tylko najważniejszy sygnał. `sp9ak.sh` uruchamia Chrome z `--autoplay-policy=no-user-gesture-required`, żeby sygnał zabrzmiał także przy starcie dyktowania globalnym skrótem, zanim klikniesz w okno.
+
 ## Globalny skrót systemowy (X11)
 
 Ikona w trayu nasłuchuje globalnego skrótu **Ctrl+F11** (działa nawet gdy okno jest schowane lub na innym pulpicie):
@@ -315,6 +348,12 @@ Na Waylandzie globalne skróty nie są dostępne dla zwykłych programów – us
 
 Nad edytorem jest maleńki pasek z przyciskami okna. Pierwszy z nich, pinezka, przypina okno na wierzchu (Always On Top)
 i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylandzie, przycisk jest ukryty.
+
+## Grubsza karetka
+
+Chrome rysuje karetkę w polu tekstowym o szerokości 1 px i CSS nie pozwala jej pogrubić, więc w polu „Oryginał”
+łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą (2 px, w kolorze motywu), która miga
+tak jak zwykła. Znika przy zaznaczeniu tekstu i gdy pole traci fokus (`web/js/ui/thick-caret.js`).
 
 ## Interpunkcja według języka
 
@@ -339,3 +378,5 @@ Nieznany język używa reguł polskich. Nowy język to nowy plik z regułami i w
 ## Licencja
 
 MIT, Copyright (c) 2026 desi9n.pl. Szczegóły w pliku [LICENSE](LICENSE).
+
+Jeśli tworzysz fork lub pochodną wersję projektu, musisz zachować informację o autorstwie **desi9n.pl** (nota o prawach autorskich i treść licencji MIT z pliku [LICENSE](LICENSE)) oraz wskazać oryginalne repozytorium. Zmiany w repozytorium przyjmujemy wyłącznie od zespołu; pull requesty i zgłoszenia od osób z zewnątrz są wyłączone.

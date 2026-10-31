@@ -6,8 +6,8 @@ set -euo pipefail
 main() {
     local DIR DATA PORT PIDFILE PROFILE CHROME PAGE WIN_W WIN_H WIN_POS TRAY_PID
     DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
-    PORT=17823
-    PIDFILE="/tmp/sp9ak.pid"
+    PORT="${SP9AK_PORT:-17823}"
+    PIDFILE="${SP9AK_PIDFILE:-/tmp/sp9ak.pid}"
     # Dane użytkownika (profil Chrome, historia sesji): domyślnie w katalogu projektu,
     # w pakiecie .deb ustawiane na ~/.local/share/sp9ak (SP9AK_DATA), bo /usr jest tylko do odczytu.
     DATA="${SP9AK_DATA:-$DIR}"
@@ -30,10 +30,11 @@ main() {
     PAGE="index.html"
     [[ "${1:-}" == "--test" ]] && PAGE="nano-check/index.html"
 
-    # Zatrzymaj poprzedni serwer jeśli działa
+    # Aplikacja już działa (np. drugie kliknięcie skrótu): tylko pokaż okno. Ponowny start zabiłby
+    # serwer, a Chrome z tym samym profilem przekazałby okno działającemu procesowi i od razu wyszedł.
     if [[ -f "$PIDFILE" ]] && kill -0 "$(<"$PIDFILE")" 2>/dev/null; then
-        kill "$(<"$PIDFILE")"
-        sleep 0.2
+        wmctrl -a sp9ak 2>/dev/null || true
+        exit 0
     fi
 
     # Serwer z obsługą GET (pliki statyczne) i POST /api/sessions (zapis JSON)
@@ -65,6 +66,7 @@ main() {
         --user-data-dir="$PROFILE" \
         --no-default-browser-check \
         --no-first-run \
+        --autoplay-policy=no-user-gesture-required \
         --window-size=$WIN_W,$WIN_H \
         --window-position=$WIN_POS \
         --enable-features=PromptAPIForGeminiNano,OptimizationGuideOnDeviceModel:bypass_perf_requirement/true \

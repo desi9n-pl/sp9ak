@@ -8,6 +8,7 @@ import { GeminiNano } from './services/gemini-nano.js';
 import { HotkeyPoller } from './services/hotkey-poller.js';
 import { Logger } from './services/logger.js';
 import { SessionHistory } from './services/session-history.js';
+import { SoundPlayer } from './services/sound.js';
 import { Storage } from './services/storage.js';
 import { AiStatusView } from './ui/ai-status-view.js';
 import { CopyButton } from './ui/copy-button.js';
@@ -27,9 +28,11 @@ import { PinButton } from './ui/pin-button.js';
 import { installPointerFocus } from './ui/pointer-focus.js';
 import { PunctuationToggle } from './ui/punctuation-toggle.js';
 import { SemanticView } from './ui/semantic-view.js';
+import { SoundToggle } from './ui/sound-toggle.js';
 import { installShortcuts } from './ui/shortcuts.js';
 import { StatusBar } from './ui/status-bar.js';
 import { ThemePicker } from './ui/theme-picker.js';
+import { ThickCaret } from './ui/thick-caret.js';
 import { Toast } from './ui/toast.js';
 import { Waveform } from './ui/waveform.js';
 
@@ -37,17 +40,20 @@ import { Waveform } from './ui/waveform.js';
 const SPEECH_LEVEL = 22;
 
 const storage = new Storage();
+const sound = new SoundPlayer();
+new SoundToggle({ storage, sound });
 const log = new Logger();
 const toast = new Toast();
 const status = new StatusBar();
 const editor = new Editor();
+new ThickCaret(editor.el, { log });
 installPointerFocus({ editor });
 const corrected = new CorrectedPane({ toast });
 const history = new SessionHistory({ storage });
 
 const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
 const loudness = new LoudnessTracker({ speechLevel: SPEECH_LEVEL });
-const loudToggle = new LoudToggle({ storage });
+const loudToggle = new LoudToggle({ storage, sound });
 const dictation = new Dictation({
     editor,
     loudness: { tracker: loudness, enabled: () => loudToggle.enabled },
@@ -66,21 +72,24 @@ const panels = new PanelManager({
     logs: { panel: byId('logsPanel'), button: byId('logsBtn') },
     semantic: { panel: byId('semanticPanel'), button: byId('semanticBtn'), pinned: true, manual: true },
 });
-const installModal = new InstallModal();
+panels.on('open', () => sound.play('open'));
+panels.on('close', () => sound.play('close'));
+const installModal = new InstallModal({ sound });
 
-new ThemePicker({ storage });
-new LogsView({ log, panels, storage });
+new ThemePicker({ storage, sound });
+new LogsView({ log, panels, storage, sound });
 new AiStatusView({ ai });
-new ExternalAiForm({ ai });
-new LanguageToggle({ dictation });
+new ExternalAiForm({ ai, sound });
+new LanguageToggle({ dictation, sound });
 new DictationButton({ dictation, status });
-const punctuation = new PunctuationToggle({ storage, ai });
+const punctuation = new PunctuationToggle({ storage, ai, sound });
 const emptyState = new EmptyState({ editor, dictation });
-const copyButton = new CopyButton({ editor, corrected });
-new PinButton({ toast }).load();
+const copyButton = new CopyButton({ editor, corrected, sound });
+new PinButton({ toast, sound }).load();
 
 new HistoryView({
     history,
+    sound,
     onSelect(text) {
         // Saved sessions are trimmed; dictated text ends with a space, so the next phrase must not stick to the last word.
         const loaded = `${text} `;
@@ -88,17 +97,19 @@ new HistoryView({
         editor.setCaret(loaded.length);
         dictation.moveTo(loaded.length);
         panels.close('history');
+        sound.play('select');
         editor.focus();
     },
 });
 
 new SemanticView({
-    ai, editor, panels, status, toast, log,
+    ai, editor, panels, status, toast, log, sound,
     isDictating: () => dictation.listening,
     onApply(text) {
         editor.setText(text);
         dictation.moveTo(editor.caret);
         panels.close('semantic');
+        sound.play('success');
         editor.focus();
     },
 });
@@ -114,6 +125,8 @@ const waveform = new Waveform({
 dictation.on('status', ({ text, active }) => status.set(text, active));
 dictation.on('toast', ({ text, ms }) => toast.show(text, ms));
 dictation.on('started', () => waveform.start());
+dictation.on('began', () => sound.play('start'));
+dictation.on('ended', ({ failed }) => sound.play(failed ? 'error' : 'stop'));
 dictation.on('stopped', () => {
     loudness.discardSegment();
     waveform.stop();
@@ -135,6 +148,7 @@ function startNewNote() {
     corrected.clear();
     dictation.moveTo(0);
     emptyState.reset();
+    sound.play('create');
     editor.focus();
 }
 byId('newNoteBtn').addEventListener('click', startNewNote);
@@ -150,7 +164,7 @@ installShortcuts({
     },
 });
 
-watchConnectivity({ toast, ai });
+watchConnectivity({ toast, ai, sound });
 
 new HotkeyPoller({
     onSignal: action => (action === 'stop' ? dictation.stop() : dictation.start()),

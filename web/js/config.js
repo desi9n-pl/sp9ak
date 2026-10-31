@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
     extModel: 'sp9ak-ext-model',
     extKey: 'sp9ak-ext-key',
     sessions: 'sp9ak-sessions',
+    sounds: 'sp9ak-sounds',
 };
 
 export const DEFAULT_THEME = 'sepia';

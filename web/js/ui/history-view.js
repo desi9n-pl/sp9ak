@@ -1,3 +1,4 @@
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 const PREVIEW_LENGTH = 80;
@@ -5,13 +6,16 @@ const TIME_FORMAT = { day: 'numeric', month: 'short', hour: '2-digit', minute: '
 
 /** Session history panel. Emits nothing: picking a session calls `onSelect(text)`. */
 export class HistoryView {
-    constructor({ history, onSelect }) {
+    constructor({ history, onSelect, sound = SILENT }) {
         this.history = history;
+        this.sound = sound;
         this.onSelect = onSelect;
         this.list = byId('historyList');
         this.empty = byId('historyEmpty');
         byId('clearAllBtn').addEventListener('click', () => {
-            if (confirm('Usunąć wszystkie sesje z historii?')) history.clear();
+            if (!confirm('Usunąć wszystkie sesje z historii?')) return;
+            history.clear();
+            sound.play('remove');
         });
         history.on('change', () => this.render());
     }
@@ -47,6 +51,7 @@ export class HistoryView {
         remove.addEventListener('click', event => {
             event.stopPropagation();
             this.history.remove(id);
+            this.sound.play('remove');
         });
 
         item.append(body, remove);

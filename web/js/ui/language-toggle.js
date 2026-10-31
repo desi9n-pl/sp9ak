@@ -1,3 +1,4 @@
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 const LANGUAGES = [
@@ -7,8 +8,9 @@ const LANGUAGES = [
 
 /** The PL / EN chip choosing the recognition language. */
 export class LanguageToggle {
-    constructor({ dictation }) {
+    constructor({ dictation, sound = SILENT }) {
         this.dictation = dictation;
+        this.sound = sound;
         this.chip = byId('langToggle');
         this.index = 0;
         this.chip.addEventListener('click', () => this.next());
@@ -21,5 +23,6 @@ export class LanguageToggle {
         this.chip.setAttribute('aria-label', `Język rozpoznawania: ${name}`);
         this.chip.classList.toggle('en', this.index > 0);
         this.dictation.setLanguage(code);
+        this.sound.play('select');
     }
 }

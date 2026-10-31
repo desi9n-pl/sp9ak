@@ -16,8 +16,10 @@ const FATAL_ERRORS = ['not-allowed', 'audio-capture'];
  *
  * Emits:
  *  - `status`   { text, active }   progress line for the status bar
- *  - `started`                     the recognizer is listening
+ *  - `started`                     the recognizer is listening (again after every automatic restart)
  *  - `stopped`                     dictation ended (also on fatal errors)
+ *  - `began`                       once per dictation, when the recognizer first listens
+ *  - `ended`    { failed }         once per dictation, when it is over; `failed` if it broke off
  *  - `toast`    { text, ms }       something worth telling the user
  *  - `finished` { text }           final dictated text, once per dictation
  */
@@ -32,6 +34,10 @@ export class Dictation extends Emitter {
     #networkFailures = 0;
     #networkError = false;
     #fatalMessage = null;
+    // the network kept failing and the dictation was given up
+    #gaveUp = false;
+    // `began` was emitted for the current dictation
+    #began = false;
     // stop() was called but the engine has not reported `end` yet; start() would throw until it does
     #stopping = false;
     #startRequested = false;
@@ -94,6 +100,7 @@ export class Dictation extends Emitter {
         }
         this.span.begin(resolveStartPosition(this.#editor.caret, this.#rememberedCaret, this.#editor.value.length));
         this.#pendingBreak = false;
+        this.#began = false;
         this.#listening = true;
         this.#recognition.lang = this.language;
         try {
@@ -101,6 +108,7 @@ export class Dictation extends Emitter {
         } catch {
             this.#listening = false;
             this.#status('Błąd uruchamiania mikrofonu');
+            this.emit('ended', { failed: true });
         }
     }
 
@@ -120,6 +128,10 @@ export class Dictation extends Emitter {
         rec.onstart = () => {
             this.#status('Słucham…', true);
             this.emit('started');
+            if (!this.#began) {
+                this.#began = true;
+                this.emit('began');
+            }
         };
         rec.onresult = event => this.#onResult(event);
         rec.onerror = event => this.#onError(event);
@@ -242,6 +254,7 @@ export class Dictation extends Emitter {
         if (delay === null) {
             this.#listening = false;
             this.#networkFailures = 0;
+            this.#gaveUp = true;
             this.emit('toast', { text: 'Dyktowanie przerwane – brak stabilnego połączenia. Tekst zachowany.', ms: 4000 });
             this.#finish();
             return;
@@ -269,8 +282,10 @@ export class Dictation extends Emitter {
         this.#write(raw, '');
         this.emit('stopped');
         this.emit('finished', { text: this.span.final });
+        this.emit('ended', { failed: this.#fatalMessage !== null || this.#gaveUp });
         this.#status(this.#fatalMessage ?? 'Gotowy');
         this.#fatalMessage = null;
+        this.#gaveUp = false;
         this.#rememberedCaret = this.#editor.caret;
         this.#editor.focus();
         if (this.#startRequested) {
