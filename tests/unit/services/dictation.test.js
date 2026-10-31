@@ -39,6 +39,7 @@ class FakeRecognition {
         this.onresult({ resultIndex: 0, results });
     }
     fail(error) { this.onerror({ error }); }
+    abort() { if (this.running) this.end(); }
 }
 
 let editor;
@@ -539,5 +540,146 @@ describe('loudness capitals', () => {
         recognition.say('głośno');
         expect(tracker.takeSegment).toHaveBeenCalled();
         expect(editor.value).toBe('głośno ');
+    });
+});
+
+describe('stopping always completes', () => {
+    function failNetwork() {
+        recognition.fail('network');
+        recognition.end();
+    }
+
+    it('finishes at once when stopped while waiting to retry after a network error', () => {
+        dictation.start();
+        recognition.say('zachowane');
+        failNetwork();
+        dictation.stop();
+        // no engine is running, so nobody would ever acknowledge the stop
+        expect(events.finished).toEqual([{ text: 'zachowane ' }]);
+        expect(events.stopped).toHaveLength(1);
+        expect(events.ended).toEqual([{ failed: false }]);
+        expect(lastStatus()).toEqual({ text: 'Gotowy', active: false });
+    });
+
+    it('can start again after being stopped during a retry wait', () => {
+        dictation.start();
+        failNetwork();
+        dictation.stop();
+        dictation.start();
+        expect(dictation.listening).toBe(true);
+        expect(recognition.starts).toBe(2);
+        vi.advanceTimersByTime(10_000);
+        expect(recognition.starts).toBe(2); // the old retry timer is gone
+    });
+
+    it('tells the user that it is stopping', () => {
+        dictation.start();
+        dictation.stop();
+        expect(lastStatus().text).toBe('Zatrzymuję…');
+    });
+
+    it('gives up waiting for an engine that never reports the end', () => {
+        dictation.start();
+        recognition.say('tekst');
+        dictation.stop();
+        vi.advanceTimersByTime(1999);
+        expect(events.finished).toEqual([]);
+        vi.advanceTimersByTime(1);
+        expect(events.finished).toEqual([{ text: 'tekst ' }]);
+        expect(events.stopped).toHaveLength(1);
+        expect(lastStatus()).toEqual({ text: 'Gotowy', active: false });
+    });
+
+    it('asks a silent engine to abort', () => {
+        recognition.abort = vi.fn();
+        dictation.start();
+        dictation.stop();
+        vi.advanceTimersByTime(2000);
+        expect(recognition.abort).toHaveBeenCalled();
+    });
+
+    it('ignores the late end of an engine it already gave up on', () => {
+        dictation.start();
+        dictation.stop();
+        vi.advanceTimersByTime(2000);
+        recognition.end();
+        expect(events.finished).toHaveLength(1);
+        expect(events.stopped).toHaveLength(1);
+        expect(events.ended).toHaveLength(1);
+    });
+
+    it('cancels the wait when the engine does end', () => {
+        dictation.start();
+        dictation.stop();
+        recognition.end();
+        vi.advanceTimersByTime(5000);
+        expect(events.finished).toHaveLength(1);
+    });
+
+    it('can dictate again after a forced finish', () => {
+        dictation.start();
+        dictation.stop();
+        vi.advanceTimersByTime(2000);
+        recognition.end();               // the abandoned session ends eventually
+        dictation.start();
+        expect(dictation.listening).toBe(true);
+        expect(recognition.starts).toBe(2);
+        recognition.say('nowe');
+        expect(editor.value).toBe('nowe ');
+    });
+
+    it('finishes after a fatal error even when stop was pressed meanwhile', () => {
+        dictation.start();
+        recognition.fail('not-allowed');
+        dictation.stop();
+        recognition.end();
+        expect(events.finished).toHaveLength(1);
+        expect(events.ended).toEqual([{ failed: true }]);
+    });
+});
+
+/** Random key presses and engine events: whatever happens, the last stop must really stop. */
+describe('stopping survives random event orders', () => {
+    function rng(seed) {
+        let s = seed;
+        return () => {
+            s = (s * 1664525 + 1013904223) % 4294967296;
+            return s / 4294967296;
+        };
+    }
+
+    const STEPS = [
+        () => dictation.toggle(),
+        () => dictation.start(),
+        () => dictation.stop(),
+        () => recognition.running && recognition.say('słowo', Math.random() < 0.5),
+        () => recognition.running && recognition.end(),
+        () => recognition.running && (recognition.fail('network'), recognition.end()),
+        () => recognition.running && recognition.fail('no-speech'),
+        () => vi.advanceTimersByTime(400),
+        () => vi.advanceTimersByTime(3000),
+    ];
+
+    it.each(Array.from({ length: 200 }, (_, i) => i + 1))('seed %i', seed => {
+        const random = rng(seed);
+        vi.spyOn(Math, 'random').mockImplementation(random);
+        for (let i = 0; i < 60; i++) STEPS[Math.floor(random() * STEPS.length)]();
+
+        dictation.stop();
+        if (recognition.running && random() < 0.5) recognition.end();
+        vi.advanceTimersByTime(60_000);
+
+        expect(dictation.listening).toBe(false);
+        // not stuck: a fresh start reaches the engine, or is already queued behind a finished stop
+        dictation.start();
+        expect(dictation.listening).toBe(true);
+        dictation.stop();
+        if (recognition.running) recognition.end();
+        vi.advanceTimersByTime(60_000);
+        expect(dictation.listening).toBe(false);
+        // every dictation that began has ended exactly once
+        expect(events.ended.length).toBe(events.began.length);
+        expect(events.finished.length).toBe(events.began.length);
+        vi.restoreAllMocks();
     });
 });

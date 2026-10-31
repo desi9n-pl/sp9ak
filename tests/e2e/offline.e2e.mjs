@@ -56,6 +56,27 @@ try {
         await ctx.close();
     });
 
+    await check('Ctrl+D while waiting to retry after a network error stops the dictation for good', async () => {
+        const { page, errors, ctx } = await dictPage();
+        await page.click('#typeBtn');
+        await toggleDictation(page);
+        await page.evaluate(() => window.__say('zdanie przed awarią'));
+        await page.evaluate(() => { window.__netDown = true; window.__fail('network'); });
+        await page.waitForTimeout(100);                 // the engine ended; the retry is waiting
+        await page.keyboard.press('Control+d');
+        await page.waitForFunction(() => !document.getElementById('dictBtn').classList.contains('on'), null, { timeout: 2000 });
+        const starts = await page.evaluate(() => window.__starts);
+        await page.waitForTimeout(2500);                // longer than the first retry delays
+        assert.equal(await page.evaluate(() => window.__starts), starts, 'po zatrzymaniu nie może być kolejnych startów');
+        assert.equal(await page.evaluate(() => document.getElementById('dictBtn').classList.contains('on')), false);
+        assert.match(await page.inputValue('#corrected'), /Zdanie przed awarią/);
+        await page.evaluate(() => { window.__netDown = false; });
+        await toggleDictation(page);                    // and it can be started again
+        assert.equal(await page.evaluate(() => document.getElementById('dictBtn').classList.contains('on')), true);
+        assert.deepEqual(errors, []);
+        await ctx.close();
+    });
+
     await check('brief connection loss: dictation resumes by itself and later speech reaches the text', async () => {
         const { page, ctx } = await dictPage();
         await page.click('#typeBtn');
