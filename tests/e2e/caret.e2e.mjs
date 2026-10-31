@@ -149,8 +149,15 @@ try {
         const { page, errors, ctx } = await caretPage();
         await page.keyboard.type('Początek ');
         await toggleDictation(page);
+        // words still being recognized: the field's caret stays before them, the bar is drawn after them
         await page.evaluate(() => window.__say('to jest wynik', false));
-        await assertAligned(page, 'interim result');
+        await page.waitForTimeout(100);
+        const drawn = await bar(page);
+        await page.evaluate(() => { const f = document.getElementById('output'); f.setSelectionRange(f.value.length, f.value.length); });
+        await page.waitForTimeout(100);
+        const end = await nativeCaret(page);
+        assert.ok(Math.abs(drawn.x - end.x) <= 1.5 && Math.abs(drawn.top - end.top) <= 2,
+            `interim: bar x=${drawn.x} y=${drawn.top}, end of the text x=${end.x} y=${end.top}`);
         await page.evaluate(() => window.__say('to jest wynik ostateczny i dość długi, żeby zawinąć się w polu tekstowym'));
         await assertAligned(page, 'final result');
         await toggleDictation(page);

@@ -108,6 +108,19 @@ describe('writing speech into the field', () => {
         expect(dictation.hasInterim).toBe(true);
     });
 
+    it('reports where the words still being recognized end, while the caret stays before them', () => {
+        editor.value = 'Start  koniec';
+        editor.caret = 6;
+        dictation.start();
+        expect(dictation.interimEnd).toBe(null);
+        recognition.results(['gotowe', true], ['w toku', false]);
+        expect(editor.value).toBe('Start gotowe w toku koniec');
+        expect(editor.caret).toBe(13);
+        expect(dictation.interimEnd).toBe(19);
+        recognition.say('gotowe w toku');
+        expect(dictation.interimEnd).toBe(null);
+    });
+
     it('starts at the caret and leaves the surrounding text alone', () => {
         editor.value = 'początek koniec';
         editor.caret = 9;
