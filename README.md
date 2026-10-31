@@ -349,6 +349,12 @@ Na Waylandzie globalne skróty nie są dostępne dla zwykłych programów – us
 Nad edytorem jest maleńki pasek z przyciskami okna. Pierwszy z nich, pinezka, przypina okno na wierzchu (Always On Top)
 i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylandzie, przycisk jest ukryty.
 
+## Grubsza karetka
+
+Chrome rysuje karetkę w polu tekstowym o szerokości 1 px i CSS nie pozwala jej pogrubić, więc w polu „Oryginał”
+łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą (2 px, w kolorze motywu), która miga
+tak jak zwykła. Znika przy zaznaczeniu tekstu i gdy pole traci fokus (`web/js/ui/thick-caret.js`).
+
 ## Interpunkcja według języka
 
 Automatyczna interpunkcja (chip ✦) działa regułami, osobnymi dla każdego języka rozpoznawania (PL / EN):

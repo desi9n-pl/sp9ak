@@ -47,6 +47,34 @@ textarea:focus-visible { outline: none; border-color: var(--accent-text); box-sh
 textarea::placeholder { color: var(--faint); }
 #corrected { background: var(--bg); cursor: default; }
 
+/* Thicker caret drawn by ui/thick-caret.js over the field; the native 1px one is hidden. */
+textarea.has-thick-caret { caret-color: transparent; }
+.thick-caret {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    margin-left: -1px;
+    border-radius: 1px;
+    background: var(--caret);
+    pointer-events: none;
+    z-index: 1;
+}
+.thick-caret.blink { animation: caret-blink 1.1s step-end infinite; }
+@keyframes caret-blink {
+    50% { opacity: 0; }
+}
+.thick-caret-mirror {
+    position: absolute;
+    top: 0;
+    left: -9999px;
+    visibility: hidden;
+    box-sizing: content-box;
+    border: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
 .empty-state {
     position: absolute;
     inset: 0;

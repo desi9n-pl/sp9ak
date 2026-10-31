@@ -32,6 +32,7 @@ import { SoundToggle } from './ui/sound-toggle.js';
 import { installShortcuts } from './ui/shortcuts.js';
 import { StatusBar } from './ui/status-bar.js';
 import { ThemePicker } from './ui/theme-picker.js';
+import { ThickCaret } from './ui/thick-caret.js';
 import { Toast } from './ui/toast.js';
 import { Waveform } from './ui/waveform.js';
 
@@ -45,6 +46,7 @@ const log = new Logger();
 const toast = new Toast();
 const status = new StatusBar();
 const editor = new Editor();
+new ThickCaret(editor.el);
 installPointerFocus({ editor });
 const corrected = new CorrectedPane({ toast });
 const history = new SessionHistory({ storage });
