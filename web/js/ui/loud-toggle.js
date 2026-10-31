@@ -1,9 +1,10 @@
 import { STORAGE_KEYS } from '../config.js';
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 /** The Aa chip: switches CAPITALS for phrases spoken much louder than the speaker's usual level. */
 export class LoudToggle {
-    constructor({ storage }) {
+    constructor({ storage, sound = SILENT }) {
         this.storage = storage;
         this.chip = byId('loudToggle');
         this.enabled = storage.get(STORAGE_KEYS.loudCaps) === 'on';
@@ -12,6 +13,7 @@ export class LoudToggle {
             this.enabled = !this.enabled;
             this.storage.set(STORAGE_KEYS.loudCaps, this.enabled ? 'on' : 'off');
             this.#render();
+            sound.play(this.enabled ? 'on' : 'off');
         });
     }
 

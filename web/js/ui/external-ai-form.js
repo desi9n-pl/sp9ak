@@ -1,10 +1,12 @@
 import { PROVIDERS } from '../core/providers.js';
+import { SILENT } from '../services/sound.js';
 import { byId } from './dom.js';
 
 /** Settings row for choosing an external provider, model and key. */
 export class ExternalAiForm {
-    constructor({ ai }) {
+    constructor({ ai, sound = SILENT }) {
         this.ai = ai;
+        this.sound = sound;
         this.provider = byId('extProviderSelect');
         this.model = byId('extModelInput');
         this.key = byId('extKeyInput');
@@ -40,18 +42,20 @@ export class ExternalAiForm {
         }
         this.shownProvider = this.provider.value;
         this.#syncVisibility();
+        this.sound.play('select');
     }
 
     async #save() {
         const { model } = this.ai.saveExternal(this.#values());
         this.model.value = model;
         await this.ai.applyExternal();
+        this.sound.play(this.ai.external.active ? 'success' : 'error');
     }
 
     async #test(button) {
         button.disabled = true;
         try {
-            await this.ai.external.test(this.#values());
+            this.sound.play((await this.ai.external.test(this.#values())) ? 'success' : 'error');
         } finally {
             button.disabled = false;
         }
@@ -62,5 +66,6 @@ export class ExternalAiForm {
         this.model.value = this.key.value = '';
         this.#syncVisibility();
         this.ai.clearExternal();
+        this.sound.play('remove');
     }
 }

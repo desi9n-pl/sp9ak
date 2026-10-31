@@ -1,12 +1,16 @@
 import { STORAGE_KEYS, DEFAULT_THEME } from '../config.js';
+import { SILENT } from '../services/sound.js';
 
 /** Colour theme buttons. The choice is remembered in storage. */
 export class ThemePicker {
-    constructor({ storage, root = document.documentElement }) {
+    constructor({ storage, root = document.documentElement, sound = SILENT }) {
         this.storage = storage;
         this.root = root;
         this.buttons = [...document.querySelectorAll('[data-t]')];
-        this.buttons.forEach(button => button.addEventListener('click', () => this.apply(button.dataset.t)));
+        this.buttons.forEach(button => button.addEventListener('click', () => {
+            this.apply(button.dataset.t);
+            sound.play('select');
+        }));
         this.apply(storage.get(STORAGE_KEYS.theme, DEFAULT_THEME));
     }
 
