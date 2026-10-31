@@ -33,6 +33,9 @@ export const SEMANTIC_INSTRUCTION =
     '   WAŻNE: sugestia po | musi brzmieć fonetycznie podobnie do oryginału.\n' +
     '   Nie zamieniaj na słowo, które brzmi zupełnie inaczej niż oryginał.\n' +
     '2. Po znaku | napisz właściwe słowo lub frazę pasującą do kontekstu I brzmiącą podobnie do oryginału.\n' +
+    '   Dotyczy to też pisowni, którą STT myli na słuch: ó/u, rz/ż, ch/h, ą/om/on, ę/em/en ' +
+    'oraz łączna i rozdzielna pisownia (np. "nie które" → "niektóre"). ' +
+    'Zaznacz pisownię tylko wtedy, gdy kontekst jednoznacznie wskazuje właściwą formę.\n' +
     '3. Możesz grupować sąsiadujące błędne słowa w jedną frazę: [[złe słowo jedno|dobre słowo jedno]].\n' +
     '4. ZAWSZE używaj formatu [[oryginał|sugestia]] – nigdy samego [[oryginał]].\n' +
     '5. Resztę tekstu przepisz BEZ ŻADNYCH zmian.\n' +

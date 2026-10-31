@@ -172,3 +172,9 @@ describe('review', () => {
         expect(nano.dropSession).toHaveBeenCalled();
     });
 });
+
+describe('SEMANTIC_INSTRUCTION', () => {
+    it('asks for spelling slips, not only for wrong words', () => {
+        expect(SEMANTIC_INSTRUCTION).toContain('ó/u, rz/ż');
+    });
+});
