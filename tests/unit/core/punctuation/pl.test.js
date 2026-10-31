@@ -37,7 +37,12 @@ describe('punctuate', () => {
     });
 
     it('keeps the closing full stop when the text has more than one sentence', () => {
-        expect(punctuate('witaj. co słychać')).toBe('Witaj. Co słychać.');
+        expect(punctuate('witaj. byłem w sklepie')).toBe('Witaj. Byłem w sklepie.');
+    });
+
+    it('lets the last sentence decide whether the text ends in a question mark', () => {
+        expect(punctuate('witaj. co słychać')).toBe('Witaj. Co słychać?');
+        expect(punctuate('co słychać. dobrze')).toBe('Co słychać. Dobrze.');
     });
 
     it('ends a question with a question mark', () => {

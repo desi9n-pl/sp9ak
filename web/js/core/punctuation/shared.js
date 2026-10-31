@@ -12,9 +12,17 @@ const alternatives = phrases => [...phrases].sort((a, b) => b.length - a.length)
 const wordCount = text => text.split(/\s+/).filter(Boolean).length;
 
 /** "word1 word2" -> "word1, word2" before every listed conjunction. */
-export function addConjunctionCommas(text, conjunctions) {
+export function addConjunctionCommas(text, conjunctions, except) {
     const re = new RegExp(`([^\\s${MARK}])\\s+(${alternatives(conjunctions)})(?=\\s|$)`, 'giu');
-    return text.replace(re, (_, before, word) => `${before}, ${word}`);
+    return text.replace(re, (match, before, word, offset) =>
+        (except?.test(text.slice(offset + match.length - word.length)) ? match : `${before}, ${word}`));
+}
+
+/** "nie wiem czy" -> "nie wiem, czy": an embedded question after a verb or noun that asks or doubts. */
+export function addQuestionCommas(text, leads) {
+    if (!leads.length) return text;
+    const re = new RegExp(`${LEFT}(${alternatives(leads)})\\s+(czy)${RIGHT}`, 'giu');
+    return text.replace(re, '$1, $2');
 }
 
 /** Introductory phrases get a comma when they open a sentence. */
@@ -115,6 +123,7 @@ export function capitalizeSentences(text) {
  */
 export function closeSentence(text, questionStart) {
     if (/[.!?,;:]$/.test(text)) return text;
-    if (questionStart.test(text)) return `${text}?`;
+    // only the last sentence decides: "mam pytanie. czy możemy się spotkać" ends in a question mark
+    if (questionStart.test(text.split(/[.!?]\s+/).pop())) return `${text}?`;
     return /[.!?]/.test(text) ? `${text}.` : text;
 }

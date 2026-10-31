@@ -10,6 +10,8 @@ const ERROR_MESSAGES = {
 };
 // After these the recognizer cannot continue, so the dictation ends.
 const FATAL_ERRORS = ['not-allowed', 'audio-capture'];
+// How long stop() waits for the engine to report `end` before the dictation is finished without it.
+const STOP_TIMEOUT_MS = 2000;
 
 /**
  * Speech recognition writing into a text field.
@@ -40,6 +42,11 @@ export class Dictation extends Emitter {
     #began = false;
     // stop() was called but the engine has not reported `end` yet; start() would throw until it does
     #stopping = false;
+    #stopTimer = null;
+    // the dictation was finished (`finished` emitted); a late `end` of its engine must not finish it again
+    #settled = true;
+    // waiting to start the engine again after a network error
+    #retryTimer = null;
     #startRequested = false;
     // Enter was pressed in the middle of a phrase: the line break waits until the phrase is final
     #pendingBreak = false;
@@ -101,6 +108,7 @@ export class Dictation extends Emitter {
         this.span.begin(resolveStartPosition(this.#editor.caret, this.#rememberedCaret, this.#editor.value.length));
         this.#pendingBreak = false;
         this.#began = false;
+        this.#settled = false;
         this.#listening = true;
         this.#recognition.lang = this.language;
         try {
@@ -116,8 +124,31 @@ export class Dictation extends Emitter {
         this.#startRequested = false;
         if (!this.#listening) return;
         this.#listening = false;
+        if (this.#retryTimer !== null) {
+            // the engine already ended and is only waiting to be restarted: nothing will acknowledge stop()
+            clearTimeout(this.#retryTimer);
+            this.#retryTimer = null;
+            this.#finish();
+            return;
+        }
         this.#stopping = true;
+        this.#status('Zatrzymuję…', true);
+        this.#stopTimer = setTimeout(() => this.#giveUpWaiting(), STOP_TIMEOUT_MS);
         this.#recognition.stop();
+    }
+
+    /** The engine never reported `end` after stop(): end the dictation anyway so the user is not left stuck. */
+    #giveUpWaiting() {
+        this.#stopTimer = null;
+        if (!this.#stopping) return;
+        this.#stopping = false;
+        this.#settled = true; // the abandoned engine's `end` is ignored from now on
+        try {
+            this.#recognition.abort?.();
+        } catch {
+            // nothing left to abort
+        }
+        this.#finish();
     }
 
     #configure() {
@@ -234,8 +265,10 @@ export class Dictation extends Emitter {
 
     #onEnd() {
         this.#stopping = false;
+        clearTimeout(this.#stopTimer);
+        this.#stopTimer = null;
         if (!this.#listening) {
-            this.#finish();
+            if (!this.#settled) this.#finish();
             return;
         }
         // Chrome ends the session on its own (silence, network). Freeze what was heard so the
@@ -260,7 +293,8 @@ export class Dictation extends Emitter {
             return;
         }
         this.#status('Brak połączenia – ponawiam…', true);
-        setTimeout(() => {
+        this.#retryTimer = setTimeout(() => {
+            this.#retryTimer = null;
             if (this.#listening) this.#restart();
         }, delay);
     }
@@ -274,6 +308,7 @@ export class Dictation extends Emitter {
     }
 
     #finish() {
+        this.#settled = true;
         this.span.commitInterim();
         this.#applyPendingBreak();
         // nothing was said: a bare start/stop must not leave a space behind

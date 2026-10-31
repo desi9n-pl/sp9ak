@@ -46,7 +46,7 @@ describe('punctuate: English examples', () => {
     it.each([
         ['what time is it', 'What time is it?'],
         ['hello\nhow are you', 'Hello\nHow are you'],
-        ['hello.\nhow are you', 'Hello.\nHow are you.'],
+        ['hello.\nhow are you', 'Hello.\nHow are you?'],
     ])('%j -> %j', (input, expected) => {
         expect(punctuate(input, 'en-US')).toBe(expected);
     });

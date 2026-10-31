@@ -1,7 +1,7 @@
 import { EN } from './en.js';
 import { PL } from './pl.js';
 import {
-    addConjunctionCommas, addCorrelativeCommas, addDashes, addEnumerationCommas, addIntroCommas, addSemicolons,
+    addConjunctionCommas, addCorrelativeCommas, addDashes, addEnumerationCommas, addIntroCommas, addQuestionCommas, addSemicolons,
     capitalizeSentences, closeSentence, dropStutter, fixSpelling, tidySpacing,
 } from './shared.js';
 
@@ -24,7 +24,7 @@ export function punctuate(text, language = 'pl-PL') {
     t = addEnumerationCommas(t, rules.enumeration);
     t = addSemicolons(t, rules.semicolons);
     t = addDashes(t, rules.dashes);
-    t = addConjunctionCommas(t, rules.conjunctions);
+    t = addConjunctionCommas(addQuestionCommas(t, rules.questionLeads), rules.conjunctions, rules.noCommaBefore);
     t = tidySpacing(t);
     return capitalizeSentences(closeSentence(t, rules.questionStart));
 }
