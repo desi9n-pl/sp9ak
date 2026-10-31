@@ -83,6 +83,30 @@ try {
         await ctx.close();
     });
 
+    await check('on/off chips: switched on they are filled with the accent and white text', async () => {
+        const { page, ctx } = await dictPage();
+        const look = () => page.evaluate(() => {
+            const style = getComputedStyle(document.getElementById('loudToggle'));
+            const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+            // the accent as the browser reports a computed colour
+            const probe = document.createElement('i');
+            probe.style.color = accent;
+            document.body.append(probe);
+            const accentRgb = getComputedStyle(probe).color;
+            probe.remove();
+            return { bg: style.backgroundColor, color: style.color, accentRgb };
+        });
+        const off = await look();
+        assert.notEqual(off.bg, off.accentRgb);
+        await page.click('#loudToggle');
+        await page.mouse.move(0, 0);  // hover changes the shade
+        await page.waitForTimeout(300);
+        const on = await look();
+        assert.equal(on.bg, on.accentRgb);
+        assert.equal(on.color, 'rgb(255, 255, 255)');
+        await ctx.close();
+    });
+
     await check('punctuation on: the corrected text gets a comma and a capital letter', async () => {
         const { page, ctx } = await dictPage();
         await dictate(page, 'nie przyjdę bo jestem chory');
