@@ -87,8 +87,12 @@ try {
             ['on an empty line', 'abc\n\n\ndef', 5],
             ['after tabs and repeated spaces', 'a\tb    c', 6],
             ['inside a word longer than the line', 'x'.repeat(200), 120],
-            ['after emoji', 'mikrofon 🎤🎤 tekst', 12],
+            ['after emoji', 'mikrofon 🎤🎤 tekst', 13],
         ];
+        // where the line wraps depends on the fonts of the machine, so every word start is tried
+        for (const match of WRAPPING.matchAll(/(?<=\s)\S/g)) {
+            cases.push([`start of the word at ${match.index}`, WRAPPING, match.index]);
+        }
         for (const [label, text, position] of cases) {
             await setText(page, text, position);
             await assertAligned(page, label);
@@ -101,6 +105,7 @@ try {
         const { page, errors, ctx } = await caretPage();
         await page.keyboard.type('Ala ma kota');
         await assertAligned(page, 'typed');
+        assert.ok((await bar(page)).width >= 2, 'the bar is thicker than the native caret');
         await page.keyboard.press('Enter');
         await assertAligned(page, 'Enter');
         await page.keyboard.type('druga linia');
@@ -126,7 +131,6 @@ try {
         await page.evaluate(() => document.getElementById('output').blur());
         await page.waitForTimeout(100);
         assert.equal((await bar(page)).hidden, true, 'blur');
-        assert.ok((await bar(page)).width >= 2);
         assert.deepEqual(errors, []);
         await ctx.close();
     });

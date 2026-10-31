@@ -105,13 +105,20 @@ export class ThickCaret {
         if (mirror.style.width !== width) mirror.style.width = width;
         this.#sync(el.value);
 
-        if (position < el.value.length) range.setStart(this.text, position);
-        else range.setStart(this.end, 0);
-        range.collapse(true);
-        let caret = range.getClientRects()[0];
-        if (!caret) {
-            // a collapsed range on an empty line has no box; the newline that ends the line has one
+        let caret;
+        if (position < el.value.length) {
+            // the box of the character after the caret: a collapsed range at a soft wrap reports the end of the
+            // line above, while the caret sits at the start of the next one, where this character is drawn
+            range.setStart(this.text, position);
             range.setEnd(this.text, position + 1);
+            caret = range.getClientRects()[0];
+            if (!caret) {
+                range.collapse(true);
+                caret = range.getClientRects()[0] ?? range.getBoundingClientRect();
+            }
+        } else {
+            range.setStart(this.end, 0);
+            range.collapse(true);
             caret = range.getClientRects()[0] ?? range.getBoundingClientRect();
         }
         const box = mirror.getBoundingClientRect();
