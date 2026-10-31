@@ -61,6 +61,28 @@ async function resetSessions() {
     await fetch(`${BASE}/api/sessions`, { method: 'POST', body: '[]' });
 }
 
+/* Sound cues are switched off unless a test is about them: every fresh page would otherwise
+   create an AudioContext, which only slows the scenarios down. */
+const SOUNDS_OFF = () => localStorage.setItem('sp9ak-sounds', 'off');
+
+/* AudioContext stand-in: window.__tones lists the frequencies of the notes played. */
+export const FAKE_AUDIO = () => {
+    window.__tones = [];
+    const param = () => ({ value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} });
+    window.AudioContext = class {
+        state = 'running';
+        currentTime = 0;
+        destination = {};
+        createOscillator() {
+            const frequency = param();
+            return { frequency, connect: node => node, start: () => window.__tones.push(frequency.value), stop() {} };
+        }
+        createGain() { return { gain: param(), connect: node => node }; }
+        // the waveform opens its own context and closes it when dictation stops
+        async close() {}
+    };
+};
+
 /* A page with the settings panel open (no speech stand-in). */
 export async function newPage(calls = []) {
     const ctx = await browser.newContext();
@@ -70,6 +92,7 @@ export async function newPage(calls = []) {
     await mockAI(page, calls);
     await resetSessions();
     page.setDefaultTimeout(5000);
+    await page.addInitScript(SOUNDS_OFF);
     await page.goto(`${BASE}/index.html`);
     await page.click('#settingsBtn');
     return { page, errors, ctx };
@@ -111,8 +134,9 @@ const FAKE_SR = () => {
     };
 };
 
-/* A page with the speech stand-in and all panels closed. Collects page errors. */
-export async function dictPage({ initScripts = [] } = {}) {
+/* A page with the speech stand-in and all panels closed. Collects page errors.
+   `sounds: true` keeps the sound cues on, as the user gets them. */
+export async function dictPage({ initScripts = [], sounds = false } = {}) {
     const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'], baseURL: BASE });
     const page = await ctx.newPage();
     const errors = [];
@@ -121,6 +145,7 @@ export async function dictPage({ initScripts = [] } = {}) {
     await mockAI(page);
     await resetSessions();
     await page.addInitScript(FAKE_SR);
+    if (!sounds) await page.addInitScript(SOUNDS_OFF);
     for (const sc of initScripts) await page.addInitScript(sc);
     await page.goto(`${BASE}/index.html`);
     return { page, errors, ctx };
