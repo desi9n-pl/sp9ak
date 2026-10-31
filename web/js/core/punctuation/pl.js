@@ -41,7 +41,20 @@ export const ENUMERATION = {
     joiners: ['i', 'oraz', 'lub', 'albo', 'czy'],
 };
 
+// Typical recognizer slips: words written together or apart against the spelling rules.
+export const SPELLING = [
+    ['wogóle', 'w ogóle'], ['poprostu', 'po prostu'], ['narazie', 'na razie'], ['napewno', 'na pewno'],
+    ['conajmniej', 'co najmniej'], ['conajwyżej', 'co najwyżej'], ['wkońcu', 'w końcu'],
+    ['przedewszystkim', 'przede wszystkim'], ['naprzykład', 'na przykład'], ['pozatym', 'poza tym'],
+    ['z resztą', 'zresztą'], ['po za', 'poza'],
+];
+
+// Function words that dictation tends to double; "to to" or "nie nie" can be intended, so they stay out.
+export const STUTTER_WORDS = ['i', 'w', 'z', 'na', 'do', 'że', 'się', 'o', 'po', 'za', 'od', 'ale'];
+
 export const PL = {
+    spelling: SPELLING,
+    stutterWords: STUTTER_WORDS,
     conjunctions: CONJUNCTIONS,
     introPhrases: INTRO_PHRASES,
     // [first half, second half, longest gap between them]
