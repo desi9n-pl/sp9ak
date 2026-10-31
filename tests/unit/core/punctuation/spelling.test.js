@@ -55,3 +55,23 @@ describe('punctuate with spelling rules', () => {
         expect(punctuate('poprostu i i', 'en-US')).toBe('Poprostu i i');
     });
 });
+
+describe('embedded questions and fixed phrases', () => {
+    it.each([
+        ['nie wiem czy zdążę', 'Nie wiem, czy zdążę'],
+        ['zastanawiam się czy to ma sens', 'Zastanawiam się, czy to ma sens'],
+        ['sprawdź czy drzwi są zamknięte', 'Sprawdź, czy drzwi są zamknięte'],
+        ['czy to działa czy nie', 'Czy to działa czy nie?'],
+        ['mam pytanie czy możemy się spotkać', 'Mam pytanie, czy możemy się spotkać'],
+    ])('%j', (input, expected) => {
+        expect(punctuate(input)).toBe(expected);
+    });
+
+    it.each([
+        ['odpowiem jak najszybciej', 'Odpowiem jak najszybciej'],
+        ['zrób to jak najlepiej potrafisz', 'Zrób to jak najlepiej potrafisz'],
+        ['nie wiem jak to zrobić', 'Nie wiem, jak to zrobić'],
+    ])('keeps "jak najX" together: %j', (input, expected) => {
+        expect(punctuate(input)).toBe(expected);
+    });
+});

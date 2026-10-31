@@ -361,11 +361,12 @@ Automatyczna interpunkcja (chip ✦) działa regułami, osobnymi dla każdego j�
 `web/js/core/punctuation/pl.js` i `en.js` zawierają listy słów, a `shared.js` wspólne przebiegi. Reguły:
 
 - **przecinek** przed spójnikami i zdaniami podrzędnymi oraz po zwrotach wprowadzających na początku zdania,
+- **przecinek w pytaniu zależnym** (PL): „nie wiem, czy…", „sprawdź, czy…"; „jak najszybciej" zostaje bez przecinka,
 - **średnik** przed „jednak", „natomiast", „ponadto" (EN: „however", „moreover"…) po dłuższym zdaniu (od 6 słów); krótkie zdanie zostaje z przecinkiem,
 - **pauza** przed „czyli", „to znaczy" (PL: ` – `; EN: „that is", „namely": `—`),
 - **wyliczenia**: po „takie jak", „na przykład" (EN: „such as", „including") ciąg co najmniej trzech pojedynczych słów zakończony „i" / „oraz" / „and" dostaje przecinki,
 - **typowe potknięcia rozpoznawania** (tylko PL): wyrazy zlepione lub rozdzielone wbrew ortografii („wogóle" → „w ogóle", „poprostu" → „po prostu", „z resztą" → „zresztą") oraz podwojone słowa funkcyjne („i i", „w w"); lista jest krótka i zawiera tylko formy jednoznaczne,
-- znak końca zdania (pytajnik, gdy zdanie zaczyna się jak pytanie) i wielkie litery.
+- znak końca zdania (pytajnik, gdy ostatnie zdanie zaczyna się jak pytanie) i wielkie litery.
 
 Przegląd AI (panel sugestii) szuka dodatkowo pisowni pomylonej na słuch (ó/u, rz/ż, ch/h, łączna i rozdzielna), o ile kontekst wskazuje formę jednoznacznie.
 
