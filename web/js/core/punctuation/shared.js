@@ -74,6 +74,27 @@ export function addDashes(text, { phrases, dash }) {
     return text.replace(re, (_, before, phrase) => `${before}${dash}${phrase}`);
 }
 
+// a word boundary that also holds for letters with diacritics, which \b does not
+const LEFT = '(?<![\\p{L}\\d])';
+const RIGHT = '(?![\\p{L}\\d])';
+
+const keepCase = (found, fixed) => (found[0] !== found[0].toLowerCase() ? fixed[0].toUpperCase() + fixed.slice(1) : fixed);
+
+/** Words the recognizer glues together or splits wrongly: [wrong, right] pairs, matched whole-word and case-insensitively. */
+export function fixSpelling(text, pairs) {
+    if (!pairs.length) return text;
+    const re = new RegExp(`${LEFT}(${alternatives(pairs.map(([wrong]) => wrong))})${RIGHT}`, 'giu');
+    const fixes = new Map(pairs.map(([wrong, right]) => [wrong, right]));
+    return text.replace(re, found => keepCase(found, fixes.get(found.toLowerCase())));
+}
+
+/** A function word the recognizer stuttered ("i i", "w w") is kept once. Content words may repeat on purpose. */
+export function dropStutter(text, words) {
+    if (!words.length) return text;
+    const re = new RegExp(`${LEFT}(${alternatives(words)})\\s+\\1${RIGHT}`, 'giu');
+    return text.replace(re, '$1');
+}
+
 export function tidySpacing(text) {
     return text
         .replace(/,{2,}/g, ',')

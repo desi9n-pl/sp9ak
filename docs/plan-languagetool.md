@@ -1,6 +1,13 @@
 # Plan: sprawdzanie polszczyzny przez LanguageTool
 
-Status: plan, nic niezaimplementowane. Stan na 2026-10-25.
+Status: odrzucony (2026-10-31), nic niezaimplementowane. Stan planu na 2026-10-25.
+
+Decyzja: serwer JVM z proxy i pakietem to za dużo dla tego projektu. Deep research nie znalazł
+żadnego pomiaru LanguageTool na polskim dyktowaniu, a typowe błędy dyktowania (brak wielkich liter,
+brak interpunkcji, homofony będące poprawnymi słowami) słownikowy korektor widzi słabo. Zamiast tego:
+krótka lista pewnych poprawek pisowni i usuwanie zdublowanych słów w `core/punctuation/`
+oraz pisownia w prompcie przeglądu AI (`web/js/prompts.js`). Plan zostaje jako materiał,
+gdyby dyktowanie zaczęło przynosić błędy, których te dwa mechanizmy nie łapią.
 
 ## Cel
 
