@@ -29,6 +29,7 @@ export const ENUMERATION = {
 };
 
 export const EN = {
+    questionLeads: [],
     spelling: [],
     stutterWords: [],
     conjunctions: CONJUNCTIONS,

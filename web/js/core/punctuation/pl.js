@@ -52,7 +52,20 @@ export const SPELLING = [
 // Function words that dictation tends to double; "to to" or "nie nie" can be intended, so they stay out.
 export const STUTTER_WORDS = ['i', 'w', 'z', 'na', 'do', 'że', 'się', 'o', 'po', 'za', 'od', 'ale'];
 
+// Words that open an embedded question: "nie wiem, czy", "pytanie, czy".
+export const QUESTION_LEADS = [
+    'nie wiem', 'nie wiesz', 'nie wie', 'nie wiemy', 'nie wiecie', 'wiem', 'wiesz', 'wie', 'pytam', 'pytał', 'pytałem',
+    'pytanie', 'sprawdź', 'sprawdzę', 'sprawdzić', 'zobacz', 'zobaczę', 'zobaczyć', 'zapytaj', 'zapytam', 'powiedz',
+    'zastanawiam się', 'zastanawiasz się', 'zastanawiamy się', 'ciekawe', 'ciekawy jestem', 'nie jestem pewien',
+    'nie jestem pewna', 'wątpię', 'nie pamiętam', 'pamiętasz',
+];
+
+// "jak najszybciej" is one adverb phrase, not a clause: no comma before the "jak".
+export const NO_COMMA_BEFORE = /^jak\s+naj/iu;
+
 export const PL = {
+    questionLeads: QUESTION_LEADS,
+    noCommaBefore: NO_COMMA_BEFORE,
     spelling: SPELLING,
     stutterWords: STUTTER_WORDS,
     conjunctions: CONJUNCTIONS,
