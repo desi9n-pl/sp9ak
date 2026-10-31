@@ -3,7 +3,14 @@
  * a block or an underscore), so it is easy to lose in the text. The native caret is made transparent
  * and a thicker bar is drawn over the field instead, at the position measured on a hidden copy
  * of the text that wraps the same way. Shown only while the field has the focus and nothing is selected.
+ *
+ * The copy is kept between measurements and only the edited part of it is replaced, and the caret is read
+ * with a Range instead of an inserted marker: re-laying out a long dictated text on every keystroke made typing lag.
+ * Very long texts still cost about as much as the field's own layout, so above MAX_LENGTH the native caret
+ * comes back; it also comes back for good if a measurement ever fails, so the field never loses its caret.
  */
+export const MAX_LENGTH = 20000;
+
 const COPIED_STYLES = [
     'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant', 'fontStretch',
     'lineHeight', 'letterSpacing', 'wordSpacing', 'textTransform', 'textIndent', 'tabSize',
@@ -12,9 +19,11 @@ const COPIED_STYLES = [
 
 export class ThickCaret {
     #frame = 0;
+    #failed = false;
 
-    constructor(el) {
+    constructor(el, { log } = {}) {
         this.el = el;
+        this.log = log;
         this.bar = document.createElement('div');
         this.bar.className = 'thick-caret';
         this.bar.setAttribute('aria-hidden', 'true');
@@ -25,7 +34,12 @@ export class ThickCaret {
         this.mirror = document.createElement('div');
         this.mirror.className = 'thick-caret-mirror';
         this.mirror.setAttribute('aria-hidden', 'true');
+        this.text = document.createTextNode('');
+        // gives the line after a trailing newline (and an empty field) a height, as the field shows it
+        this.end = document.createTextNode('\u200b');
+        this.mirror.append(this.text, this.end);
         document.body.append(this.mirror);
+        this.range = document.createRange();
 
         for (const type of ['selectionchange', 'input', 'scroll', 'focus', 'blur']) {
             el.addEventListener(type, () => this.schedule());
@@ -43,9 +57,23 @@ export class ThickCaret {
     }
 
     update() {
+        if (this.#failed) return;
+        try {
+            this.#update();
+        } catch (error) {
+            this.#failed = true;
+            this.bar.hidden = true;
+            this.el.classList.remove('has-thick-caret');
+            this.log?.warn('Gruba karetka wyłączona, zostaje zwykła', String(error));
+        }
+    }
+
+    #update() {
         const { el, bar } = this;
+        const native = el.value.length > MAX_LENGTH;
+        el.classList.toggle('has-thick-caret', !native);
         const collapsed = el.selectionStart === el.selectionEnd;
-        if (document.activeElement !== el || !collapsed) {
+        if (native || document.activeElement !== el || !collapsed) {
             bar.hidden = true;
             return;
         }
@@ -67,16 +95,39 @@ export class ThickCaret {
 
     /** Caret position inside the field's padding box, without scrolling. */
     #measure(position) {
-        const { el, mirror } = this;
+        const { el, mirror, range } = this;
         const style = getComputedStyle(el);
-        for (const name of COPIED_STYLES) mirror.style[name] = style[name];
+        for (const name of COPIED_STYLES) {
+            if (mirror.style[name] !== style[name]) mirror.style[name] = style[name];
+        }
         const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-        mirror.style.width = `${el.clientWidth - padding}px`;
+        const width = `${el.clientWidth - padding}px`;
+        if (mirror.style.width !== width) mirror.style.width = width;
+        this.#sync(el.value);
 
-        const marker = document.createElement('span');
-        // a zero-width space gives the marker the height of one line at the caret
-        marker.textContent = '​';
-        mirror.replaceChildren(el.value.slice(0, position), marker, el.value.slice(position));
-        return { left: marker.offsetLeft, top: marker.offsetTop, height: marker.offsetHeight };
+        if (position < el.value.length) range.setStart(this.text, position);
+        else range.setStart(this.end, 0);
+        range.collapse(true);
+        let caret = range.getClientRects()[0];
+        if (!caret) {
+            // a collapsed range on an empty line has no box; the newline that ends the line has one
+            range.setEnd(this.text, position + 1);
+            caret = range.getClientRects()[0] ?? range.getBoundingClientRect();
+        }
+        const box = mirror.getBoundingClientRect();
+        return { left: caret.left - box.left, top: caret.top - box.top, height: caret.height };
+    }
+
+    /** Brings the copy up to date by replacing only what differs between the old and the new text. */
+    #sync(value) {
+        const old = this.text.data;
+        if (old === value) return;
+        let start = 0;
+        const shorter = Math.min(old.length, value.length);
+        while (start < shorter && old.charCodeAt(start) === value.charCodeAt(start)) start++;
+        let tail = 0;
+        while (tail < shorter - start
+            && old.charCodeAt(old.length - 1 - tail) === value.charCodeAt(value.length - 1 - tail)) tail++;
+        this.text.replaceData(start, old.length - start - tail, value.slice(start, value.length - tail));
     }
 }
