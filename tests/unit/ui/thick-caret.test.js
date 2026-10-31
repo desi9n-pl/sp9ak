@@ -1,15 +1,20 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from 'vitest';
-import { ThickCaret } from '../../../web/js/ui/thick-caret.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Logger } from '../../../web/js/services/logger.js';
+import { MAX_LENGTH, ThickCaret } from '../../../web/js/ui/thick-caret.js';
 import { $, mountPage } from './fixture.js';
 
 // jsdom has no layout, so only the visibility rules are checked here; the position is covered by E2E.
-let caret;
+let caret, log;
 beforeEach(() => {
     mountPage();
     // otherwise the caret counts as scrolled out of a zero-height field
     Object.defineProperty($('output'), 'clientHeight', { value: 200 });
-    caret = new ThickCaret($('output'));
+    // jsdom does not implement these; one line-high box at the top left is enough
+    Range.prototype.getClientRects = () => [{ left: 0, top: 0, height: 20 }];
+    Range.prototype.getBoundingClientRect = () => ({ left: 0, top: 0, height: 20 });
+    log = new Logger();
+    caret = new ThickCaret($('output'), { log });
 });
 
 describe('thick caret', () => {
@@ -43,5 +48,44 @@ describe('thick caret', () => {
         $('output').focus();
         await new Promise(resolve => setTimeout(resolve, 50));
         expect(caret.bar.hidden).toBe(false);
+    });
+
+    it('keeps its copy of the text in step with edits anywhere in the field', () => {
+        $('output').focus();
+        for (const text of ['Ala ma kota', 'Ala ma psa i kota', 'ma psa i kota', 'ma psa', '', 'abc\n\n\ndef']) {
+            $('output').value = text;
+            caret.update();
+            expect(caret.text.data).toBe(text);
+        }
+    });
+});
+
+describe('falling back to the native caret', () => {
+    it('gives it back for a very long text and takes over again when the text gets shorter', () => {
+        $('output').focus();
+        $('output').value = 'a'.repeat(MAX_LENGTH + 1);
+        caret.update();
+        expect(caret.bar.hidden).toBe(true);
+        expect($('output').classList.contains('has-thick-caret')).toBe(false);
+
+        $('output').value = 'krótko';
+        caret.update();
+        expect(caret.bar.hidden).toBe(false);
+        expect($('output').classList.contains('has-thick-caret')).toBe(true);
+    });
+
+    it('gives it back for good when a measurement fails, and logs why', () => {
+        Range.prototype.getClientRects = () => { throw new Error('boom'); };
+        $('output').focus();
+        caret.update();
+        expect(caret.bar.hidden).toBe(true);
+        expect($('output').classList.contains('has-thick-caret')).toBe(false);
+        expect(log.entries.at(-1)).toMatchObject({ level: 'warn', detail: 'Error: boom' });
+
+        const measured = vi.fn(() => [{ left: 0, top: 0, height: 20 }]);
+        Range.prototype.getClientRects = measured;
+        caret.update();
+        expect(measured).not.toHaveBeenCalled();
+        expect($('output').classList.contains('has-thick-caret')).toBe(false);
     });
 });

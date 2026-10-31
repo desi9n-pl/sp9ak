@@ -6,7 +6,7 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "test:py": "python3 -m unittest discover -s tests/python -t .",
-    "test:e2e": "node tests/e2e/ext-ai.e2e.mjs && node tests/e2e/regression.e2e.mjs && node tests/e2e/offline.e2e.mjs && node tests/e2e/ui.e2e.mjs",
+    "test:e2e": "node tests/e2e/ext-ai.e2e.mjs && node tests/e2e/regression.e2e.mjs && node tests/e2e/offline.e2e.mjs && node tests/e2e/ui.e2e.mjs && node tests/e2e/caret.e2e.mjs",
     "test:monkey": "node tests/e2e/monkey.e2e.mjs",
     "test:layout": "node tests/e2e/layout.e2e.mjs",
     "test:a11y": "node tests/quality/a11y.mjs",

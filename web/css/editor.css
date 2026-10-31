@@ -65,7 +65,7 @@ textarea.has-thick-caret { caret-color: transparent; }
     50% { opacity: 0; }
 }
 .thick-caret-mirror {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: -9999px;
     visibility: hidden;
