@@ -135,6 +135,23 @@ try {
         await ctx.close();
     });
 
+    await check('caret: triangles at both ends point at the bar, in the caret colour', async () => {
+        const { page, ctx } = await caretPage();
+        await page.keyboard.type('Ala ma kota');
+        await page.waitForTimeout(100);
+        const ends = await page.evaluate(() => {
+            const el = document.querySelector('.thick-caret');
+            const caret = getComputedStyle(el).backgroundColor;
+            const [top, bottom] = ['::before', '::after'].map(pseudo => getComputedStyle(el, pseudo));
+            return {
+                top: top.borderTopColor === caret && top.top === '0px' && top.borderBottomWidth === '0px',
+                bottom: bottom.borderBottomColor === caret && bottom.bottom === '0px' && bottom.borderTopWidth === '0px',
+            };
+        });
+        assert.deepEqual(ends, { top: true, bottom: true });
+        await ctx.close();
+    });
+
     await check('caret: a narrower window re-wraps the text and the bar follows', async () => {
         const { page, errors, ctx } = await caretPage();
         await setText(page, WRAPPING);
