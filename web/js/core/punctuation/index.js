@@ -2,7 +2,7 @@ import { EN } from './en.js';
 import { PL } from './pl.js';
 import {
     addConjunctionCommas, addCorrelativeCommas, addDashes, addEnumerationCommas, addIntroCommas, addSemicolons,
-    capitalizeSentences, closeSentence, tidySpacing,
+    capitalizeSentences, closeSentence, dropStutter, fixSpelling, tidySpacing,
 } from './shared.js';
 
 const RULES = { pl: PL, en: EN };
@@ -12,12 +12,13 @@ export function rulesFor(language) {
     return RULES[String(language ?? '').slice(0, 2).toLowerCase()] ?? PL;
 }
 
-/** Adds commas, semicolons, dashes, a closing mark and sentence capitals according to the language's rules. */
+/** Fixes common recognizer slips, adds commas, semicolons, dashes, a closing mark and sentence capitals according to the language's rules. */
 export function punctuate(text, language = 'pl-PL') {
     const rules = rulesFor(language);
     let t = text.trim();
     if (!t) return t;
     t = t.replace(/[ \t]{2,}/g, ' ');
+    t = dropStutter(fixSpelling(t, rules.spelling), rules.stutterWords);
     t = addIntroCommas(t, rules.introPhrases);
     t = addCorrelativeCommas(t, rules.correlatives);
     t = addEnumerationCommas(t, rules.enumeration);
