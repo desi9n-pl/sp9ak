@@ -60,6 +60,18 @@ textarea.has-thick-caret { caret-color: transparent; }
     pointer-events: none;
     z-index: 1;
 }
+/* Small triangles at both ends pointing at the bar, as office suites draw it, so the caret is easy to spot. */
+.thick-caret::before,
+.thick-caret::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    transform: translateX(-50%);
+}
+.thick-caret::before { top: 0; border-top: 4px solid var(--caret); }
+.thick-caret::after { bottom: 0; border-bottom: 4px solid var(--caret); }
 .thick-caret.blink { animation: caret-blink 1.1s step-end infinite; }
 @keyframes caret-blink {
     50% { opacity: 0; }

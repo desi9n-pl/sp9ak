@@ -352,8 +352,12 @@ i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylan
 ## Grubsza karetka
 
 Chrome rysuje karetkę w polu tekstowym o szerokości 1 px i CSS nie pozwala jej pogrubić, więc w polu „Oryginał”
-łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą (2 px, w kolorze motywu), która miga
-tak jak zwykła. Znika przy zaznaczeniu tekstu i gdy pole traci fokus (`web/js/ui/thick-caret.js`).
+łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą (2 px, w kolorze motywu),
+z trójkącikami na górze i na dole, jak w pakietach biurowych. Miga tak jak zwykła, znika przy zaznaczeniu tekstu
+i gdy pole traci fokus (`web/js/ui/thick-caret.js`).
+
+Podczas dyktowania karetka stoi na końcu słów, które Chrome jeszcze rozpoznaje. Przy tekście dłuższym niż
+20 000 znaków aplikacja wraca do zwykłej karetki Chrome, bo pomiar spowalniałby pisanie.
 
 ## Interpunkcja według języka
 

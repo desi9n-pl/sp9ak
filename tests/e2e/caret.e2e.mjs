@@ -135,6 +135,23 @@ try {
         await ctx.close();
     });
 
+    await check('caret: triangles at both ends point at the bar, in the caret colour', async () => {
+        const { page, ctx } = await caretPage();
+        await page.keyboard.type('Ala ma kota');
+        await page.waitForTimeout(100);
+        const ends = await page.evaluate(() => {
+            const el = document.querySelector('.thick-caret');
+            const caret = getComputedStyle(el).backgroundColor;
+            const [top, bottom] = ['::before', '::after'].map(pseudo => getComputedStyle(el, pseudo));
+            return {
+                top: top.borderTopColor === caret && top.top === '0px' && top.borderBottomWidth === '0px',
+                bottom: bottom.borderBottomColor === caret && bottom.bottom === '0px' && bottom.borderTopWidth === '0px',
+            };
+        });
+        assert.deepEqual(ends, { top: true, bottom: true });
+        await ctx.close();
+    });
+
     await check('caret: a narrower window re-wraps the text and the bar follows', async () => {
         const { page, errors, ctx } = await caretPage();
         await setText(page, WRAPPING);
@@ -149,8 +166,15 @@ try {
         const { page, errors, ctx } = await caretPage();
         await page.keyboard.type('Początek ');
         await toggleDictation(page);
+        // words still being recognized: the field's caret stays before them, the bar is drawn after them
         await page.evaluate(() => window.__say('to jest wynik', false));
-        await assertAligned(page, 'interim result');
+        await page.waitForTimeout(100);
+        const drawn = await bar(page);
+        await page.evaluate(() => { const f = document.getElementById('output'); f.setSelectionRange(f.value.length, f.value.length); });
+        await page.waitForTimeout(100);
+        const end = await nativeCaret(page);
+        assert.ok(Math.abs(drawn.x - end.x) <= 1.5 && Math.abs(drawn.top - end.top) <= 2,
+            `interim: bar x=${drawn.x} y=${drawn.top}, end of the text x=${end.x} y=${end.top}`);
         await page.evaluate(() => window.__say('to jest wynik ostateczny i dość długi, żeby zawinąć się w polu tekstowym'));
         await assertAligned(page, 'final result');
         await toggleDictation(page);

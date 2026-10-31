@@ -78,6 +78,11 @@ export class Dictation extends Emitter {
         return this.span.interim !== '';
     }
 
+    /** End of the words still being recognized, where the caret appears to be; null when there are none. */
+    get interimEnd() {
+        return this.#listening && this.hasInterim ? this.span.start + this.span.length : null;
+    }
+
     /** Called when the user moves the caret, so a later dictation starts there. */
     rememberCaret() {
         if (!this.#listening) this.#rememberedCaret = this.#editor.caret;

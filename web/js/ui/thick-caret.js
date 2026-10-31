@@ -8,6 +8,9 @@
  * with a Range instead of an inserted marker: re-laying out a long dictated text on every keystroke made typing lag.
  * Very long texts still cost about as much as the field's own layout, so above MAX_LENGTH the native caret
  * comes back; it also comes back for good if a measurement ever fails, so the field never loses its caret.
+ *
+ * `drawAt` may name another place to draw the bar: during dictation the field's caret stays before the words
+ * still being recognized (see SpeechSpan.apply), yet the user expects it at the end of what is on screen.
  */
 export const MAX_LENGTH = 20000;
 
@@ -21,9 +24,10 @@ export class ThickCaret {
     #frame = 0;
     #failed = false;
 
-    constructor(el, { log } = {}) {
+    constructor(el, { log, drawAt = () => null } = {}) {
         this.el = el;
         this.log = log;
+        this.drawAt = drawAt;
         this.bar = document.createElement('div');
         this.bar.className = 'thick-caret';
         this.bar.setAttribute('aria-hidden', 'true');
@@ -77,7 +81,8 @@ export class ThickCaret {
             bar.hidden = true;
             return;
         }
-        const { left, top, height } = this.#measure(el.selectionStart);
+        const position = Math.min(this.drawAt() ?? el.selectionStart, el.value.length);
+        const { left, top, height } = this.#measure(position);
         const x = el.offsetLeft + el.clientLeft + left - el.scrollLeft;
         const y = el.offsetTop + el.clientTop + top - el.scrollTop;
         // scrolled out of the visible part of the field
