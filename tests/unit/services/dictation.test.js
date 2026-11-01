@@ -288,10 +288,42 @@ describe('lifecycle', () => {
     });
 
     it('reports a recognizer that refuses to start', () => {
-        recognition.start = () => { throw new DOMException('busy', 'InvalidStateError'); };
+        recognition.start = () => { throw new Error('boom'); };
         dictation.start();
         expect(dictation.listening).toBe(false);
         expect(lastStatus().text).toBe('Błąd uruchamiania mikrofonu');
+    });
+
+    it('aborts a session that is still ending and starts again instead of failing', () => {
+        recognition.running = true; // a previous session has not reported `end` yet
+        dictation.start();
+        expect(recognition.starts).toBe(1);
+        expect(dictation.listening).toBe(true);
+        expect(lastStatus().text).toBe('Słucham…');
+    });
+
+    it('shows at once that the microphone is starting', () => {
+        recognition.onstart = null; // the engine is slow to report `start`
+        dictation.start();
+        expect(lastStatus().text).toBe('Uruchamiam mikrofon…');
+    });
+
+    it('aborts and starts again when the engine never reports `start`', () => {
+        const onstart = recognition.onstart;
+        recognition.onstart = null; // accepts start() but hangs
+        dictation.start();
+        expect(recognition.starts).toBe(1);
+        recognition.onstart = onstart;
+        vi.advanceTimersByTime(3000);
+        expect(recognition.starts).toBe(2);
+        expect(dictation.listening).toBe(true);
+        expect(lastStatus().text).toBe('Słucham…');
+    });
+
+    it('does not interfere once the engine has started', () => {
+        dictation.start();
+        vi.advanceTimersByTime(10_000);
+        expect(recognition.starts).toBe(1);
     });
 
     it('finishes after the engine acknowledges stop', () => {

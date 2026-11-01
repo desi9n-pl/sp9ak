@@ -12,6 +12,8 @@ const ERROR_MESSAGES = {
 const FATAL_ERRORS = ['not-allowed', 'audio-capture'];
 // How long stop() waits for the engine to report `end` before the dictation is finished without it.
 const STOP_TIMEOUT_MS = 2000;
+// How long start() waits for the engine to report `start`; a mic that hangs would otherwise leave the app looking dead.
+const START_TIMEOUT_MS = 3000;
 
 /**
  * Speech recognition writing into a text field.
@@ -43,6 +45,7 @@ export class Dictation extends Emitter {
     // stop() was called but the engine has not reported `end` yet; start() would throw until it does
     #stopping = false;
     #stopTimer = null;
+    #startTimer = null;
     // the dictation was finished (`finished` emitted); a late `end` of its engine must not finish it again
     #settled = true;
     // waiting to start the engine again after a network error
@@ -116,19 +119,51 @@ export class Dictation extends Emitter {
         this.#settled = false;
         this.#listening = true;
         this.#recognition.lang = this.language;
+        this.#status('Uruchamiam mikrofon…', true);
         try {
             this.#recognition.start();
-        } catch {
+            this.#startTimer = setTimeout(() => this.#startStalled(), START_TIMEOUT_MS);
+        } catch (error) {
+            if (error?.name === 'InvalidStateError' && this.#recoverBusyEngine()) return;
             this.#listening = false;
             this.#status('Błąd uruchamiania mikrofonu');
             this.emit('ended', { failed: true });
         }
     }
 
+    /** The engine accepted start() but never listened: abort it and try again instead of hanging silently. */
+    #startStalled() {
+        this.#startTimer = null;
+        if (this.#listening && !this.#began && this.#retryTimer === null && !this.#recoverBusyEngine()) {
+            this.#restart();
+        }
+    }
+
+    /**
+     * The previous session of the engine has not ended yet (it can take seconds), so start() threw.
+     * Aborting makes it report `end`, and #onEnd restarts it while we are still listening; if it
+     * stays silent, the restart is tried once more. Returns false when the engine cannot abort.
+     */
+    #recoverBusyEngine() {
+        this.#status('Uruchamiam mikrofon…', true);
+        if (typeof this.#recognition.abort !== 'function') return false;
+        try {
+            this.#recognition.abort();
+        } catch {
+            return false;
+        }
+        this.#retryTimer = setTimeout(() => {
+            this.#retryTimer = null;
+            if (this.#listening && !this.#began) this.#restart();
+        }, STOP_TIMEOUT_MS);
+        return true;
+    }
+
     stop() {
         this.#startRequested = false;
         if (!this.#listening) return;
         this.#listening = false;
+        clearTimeout(this.#startTimer);
         if (this.#retryTimer !== null) {
             // the engine already ended and is only waiting to be restarted: nothing will acknowledge stop()
             clearTimeout(this.#retryTimer);
@@ -162,6 +197,7 @@ export class Dictation extends Emitter {
         rec.interimResults = true;
         rec.lang = this.language;
         rec.onstart = () => {
+            clearTimeout(this.#startTimer);
             this.#status('Słucham…', true);
             this.emit('started');
             if (!this.#began) {
@@ -314,6 +350,7 @@ export class Dictation extends Emitter {
 
     #finish() {
         this.#settled = true;
+        clearTimeout(this.#startTimer);
         this.span.commitInterim();
         this.#applyPendingBreak();
         // nothing was said: a bare start/stop must not leave a space behind
