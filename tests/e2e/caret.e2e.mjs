@@ -141,7 +141,9 @@ try {
         await page.waitForTimeout(100);
         const ends = await page.evaluate(() => {
             const el = document.querySelector('.thick-caret');
-            const caret = getComputedStyle(el).backgroundColor;
+            const probe = Object.assign(document.body.appendChild(document.createElement('i')), { style: 'color: var(--caret-bar)' });
+            const caret = getComputedStyle(probe).color;
+            probe.remove();
             const [top, bottom] = ['::before', '::after'].map(pseudo => getComputedStyle(el, pseudo));
             return {
                 top: top.borderTopColor === caret && top.top === '0px' && top.borderBottomWidth === '0px',

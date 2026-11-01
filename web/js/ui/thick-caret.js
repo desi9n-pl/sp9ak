@@ -83,7 +83,8 @@ export class ThickCaret {
         }
         const position = Math.min(this.drawAt() ?? el.selectionStart, el.value.length);
         const { left, top, height } = this.#measure(position);
-        const x = el.offsetLeft + el.clientLeft + left - el.scrollLeft;
+        // whole pixels, so the 3px bar is the same on both sides of the letter boundary
+        const x = Math.round(el.offsetLeft + el.clientLeft + left - el.scrollLeft);
         const y = el.offsetTop + el.clientTop + top - el.scrollTop;
         // scrolled out of the visible part of the field
         const above = y + height < el.offsetTop + el.clientTop;

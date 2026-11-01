@@ -10,6 +10,7 @@
     --accent-h: #4338ca;
     --accent-text: #818cf8;  /* accent for text and thin lines: --accent itself is too dark on the dark background */
     --caret: #818cf8;
+    --caret-bar: #fbbf24;  /* complement of the text colour, so the bar stands out from the letters */
     --btn-bg: #27272a;
     --btn-text: #a1a1aa;
     --btn-border: #3f3f46;
@@ -29,6 +30,7 @@
     --muted: #5f6673;
     --faint: #6b7280;
     --caret: #4f46e5;
+    --caret-bar: #ea580c;
     --accent-text: #4f46e5;
     --btn-bg: #f3f4f6;
     --btn-text: #374151;
@@ -47,6 +49,7 @@
     --accent: #7c5c2e;
     --accent-h: #6b4e26;
     --caret: #7c5c2e;
+    --caret-bar: #1f78b4;
     --accent-text: #7c5c2e;
     --btn-bg: #e8e0d0;
     --btn-text: #5c4030;

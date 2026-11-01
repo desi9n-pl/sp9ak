@@ -352,7 +352,7 @@ i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylan
 ## Grubsza karetka
 
 Chrome rysuje karetkę w polu tekstowym o szerokości 1 px i CSS nie pozwala jej pogrubić, więc w polu „Oryginał”
-łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą (2 px, w kolorze motywu),
+łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą (3 px, w kolorze komplementarnym do tekstu, z wyblakłymi krawędziami),
 z trójkącikami na górze i na dole, jak w pakietach biurowych. Miga tak jak zwykła, znika przy zaznaczeniu tekstu
 i gdy pole traci fokus (`web/js/ui/thick-caret.js`).
 
