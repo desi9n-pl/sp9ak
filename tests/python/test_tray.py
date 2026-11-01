@@ -1,6 +1,7 @@
 import importlib
 import json
 import sys
+import tempfile
 import unittest
 import urllib.error
 from unittest import mock
@@ -19,6 +20,10 @@ class TrayTestCase(unittest.TestCase):
     def setUp(self):
         self.tray, self.repository = import_tray()
         self.addCleanup(sys.modules.pop, 'desktop.tray', None)
+        # the real lock would clash with a tray running on this machine
+        patcher = mock.patch.object(self.tray, 'acquire_single_instance', return_value=mock.Mock())
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
 
 class SendHotkeyTest(TrayTestCase):
@@ -96,7 +101,40 @@ class QuitTest(TrayTestCase):
         self.tray.Gtk.main_quit.assert_called_once()
 
 
+class SingleInstanceTest(unittest.TestCase):
+    def setUp(self):
+        self.tray, _ = import_tray()
+        self.addCleanup(sys.modules.pop, 'desktop.tray', None)
+        runtime = tempfile.TemporaryDirectory()
+        self.addCleanup(runtime.cleanup)
+        env = mock.patch.dict('os.environ', {'XDG_RUNTIME_DIR': runtime.name})
+        env.start()
+        self.addCleanup(env.stop)
+
+    def test_a_second_tray_for_the_same_port_gets_no_lock(self):
+        first = self.tray.acquire_single_instance(4001)
+        self.addCleanup(first.close)
+        self.assertIsNotNone(first)
+        self.assertIsNone(self.tray.acquire_single_instance(4001))
+
+    def test_other_ports_and_a_released_lock_are_free(self):
+        first = self.tray.acquire_single_instance(4001)
+        other = self.tray.acquire_single_instance(4002)
+        self.addCleanup(other.close)
+        self.assertIsNotNone(other)
+        first.close()
+        again = self.tray.acquire_single_instance(4001)
+        self.addCleanup(again.close)
+        self.assertIsNotNone(again)
+
+
 class MainTest(TrayTestCase):
+    def test_a_second_tray_exits_without_building_an_icon(self):
+        with mock.patch.object(self.tray, 'acquire_single_instance', return_value=None):
+            self.tray.main()
+        self.tray.Gtk.StatusIcon.new_from_file.assert_not_called()
+        self.tray.Gtk.main.assert_not_called()
+
     def test_wires_the_icon_hotkeys_and_main_loop(self):
         hotkey = mock.Mock()
         hotkey.start.return_value = None

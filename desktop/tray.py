@@ -1,9 +1,11 @@
 """Tray icon for sp9ak. Clicking it shows or hides the window; two global shortcuts
 start and stop dictation even when the window is hidden."""
 import contextlib
+import fcntl
 import json
 import os
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 
@@ -23,6 +25,19 @@ ICON = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icon.svg')
 WINDOW_POLL_MS = 100       # short, so the address Chrome shows while loading is replaced almost at once
 WINDOW_POLL_ATTEMPTS = 300  # 30 s: Chrome creates its window with a delay
 REQUEST_TIMEOUT_S = 2
+
+
+def acquire_single_instance(port=PORT):
+    """Takes a per-port lock for the life of the process; None when another tray already holds it.
+    The kernel drops the lock when the process dies, so a crash never leaves a stale one."""
+    path = os.path.join(os.environ.get('XDG_RUNTIME_DIR') or tempfile.gettempdir(), f'sp9ak-tray-{port}.lock')
+    lock = open(path, 'w')  # noqa: SIM115 - must stay open to keep the lock
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        lock.close()
+        return None
+    return lock
 
 
 def send_hotkey(action):
@@ -91,6 +106,9 @@ def quit_app():
 
 
 def main():
+    lock = acquire_single_instance()
+    if lock is None:
+        return  # a tray for this port is already running; a second icon would only duplicate it
     icon = Gtk.StatusIcon.new_from_file(ICON)
     icon.set_tooltip_text(f'sp9ak – kliknij lub {HOTKEY_START} (start) / {HOTKEY_STOP} (stop)')
     icon.connect('activate', lambda *_: x11.toggle())
@@ -104,6 +122,7 @@ def main():
 
     GLib.timeout_add(WINDOW_POLL_MS, WindowPlacer())
     Gtk.main()
+    lock.close()
 
 
 if __name__ == '__main__':
