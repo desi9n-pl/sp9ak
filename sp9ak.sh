@@ -4,7 +4,7 @@ set -euo pipefail
 # Całość siedzi w funkcji, bo bash czyta skrypt na bieżąco: edycja pliku lub zmiana gałęzi
 # w trakcie działania appki psułaby parsowanie końcówki (sprzątanie po zamknięciu Chrome).
 main() {
-    local DIR DATA PORT PIDFILE PROFILE CHROME PAGE WIN_W WIN_H WIN_POS TRAY_PID
+    local DIR DATA PORT PIDFILE PROFILE CHROME PAGE WIN_W WIN_H WIN_POS TRAY_PID SERVER_PID
     DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
     PORT="${SP9AK_PORT:-17823}"
     PIDFILE="${SP9AK_PIDFILE:-/tmp/sp9ak.pid}"
@@ -39,7 +39,8 @@ main() {
 
     # Serwer z obsługą GET (pliki statyczne) i POST /api/sessions (zapis JSON)
     (cd "$DIR" && exec python3 -m server "$PORT") >/dev/null 2>&1 &
-    echo $! > "$PIDFILE"
+    SERVER_PID=$!
+    echo "$SERVER_PID" > "$PIDFILE"
     sleep 0.5
 
     # Sprawdź czy serwer wystartował
@@ -61,6 +62,15 @@ main() {
         TRAY_PID=""
     fi
 
+    # Sprzątanie także po SIGTERM/SIGHUP, inaczej zabity launcher zostawia tray i serwer (kolejne ikony w trayu)
+    cleanup() {
+        [[ -n "${CHROME_PID:-}" ]] && kill "$CHROME_PID" 2>/dev/null || true
+        [[ -n "$TRAY_PID" ]] && kill "$TRAY_PID" 2>/dev/null || true
+        kill "$SERVER_PID" 2>/dev/null || true
+        rm -f "$PIDFILE"
+    }
+    trap 'cleanup; exit 143' TERM HUP INT
+
     "$CHROME" \
         --app="http://localhost:$PORT/$PAGE" \
         --user-data-dir="$PROFILE" \
@@ -70,12 +80,12 @@ main() {
         --window-size=$WIN_W,$WIN_H \
         --window-position=$WIN_POS \
         --enable-features=PromptAPIForGeminiNano,OptimizationGuideOnDeviceModel:bypass_perf_requirement/true \
-        >/dev/null 2>&1
+        >/dev/null 2>&1 &
+    CHROME_PID=$!
+    # wait zamiast pierwszego planu: bash obsłuży sygnał dopiero po zakończeniu polecenia na pierwszym planie
+    wait "$CHROME_PID" || true
 
-    # Chrome zamknięty – zatrzymaj tray i serwer
-    [[ -n "$TRAY_PID" ]] && kill "$TRAY_PID" 2>/dev/null || true
-    kill "$(<"$PIDFILE")" 2>/dev/null || true
-    rm -f "$PIDFILE"
+    cleanup
 }
 
 main "$@"

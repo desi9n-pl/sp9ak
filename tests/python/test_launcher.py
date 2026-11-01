@@ -47,5 +47,38 @@ class SecondLaunchTest(unittest.TestCase):
                 self.assertEqual(r.status, 200)
 
 
+    def test_terminating_the_launcher_stops_the_server(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            bin_dir = tmp / 'bin'
+            bin_dir.mkdir()
+            chrome = bin_dir / 'google-chrome-beta'
+            chrome.write_text(f'#!/bin/sh\ntouch {tmp}/started\nsleep 30\n')
+            chrome.chmod(0o755)
+            env = {
+                **os.environ,
+                'PATH': f'{bin_dir}:{os.environ["PATH"]}',
+                'SP9AK_PORT': str(free_port()),
+                'SP9AK_PIDFILE': str(tmp / 'pid'),
+                'SP9AK_DATA': str(tmp / 'data'),
+            }
+            launcher = subprocess.Popen([str(ROOT / 'sp9ak.sh')], env=env)
+            self.addCleanup(launcher.kill)
+            for _ in range(100):
+                if (tmp / 'started').exists():  # the launcher has installed its trap by now
+                    break
+                time.sleep(0.1)
+            server_pid = int((tmp / 'pid').read_text())
+            launcher.terminate()
+            launcher.wait(timeout=10)
+            for _ in range(30):
+                try:
+                    os.kill(server_pid, 0)
+                except ProcessLookupError:
+                    return
+                time.sleep(0.1)
+            self.fail('server survived the launcher')
+
+
 if __name__ == '__main__':
     unittest.main()
