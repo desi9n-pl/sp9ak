@@ -93,7 +93,9 @@ export class ThickCaret {
         const below = y >= el.offsetTop + el.clientTop + el.clientHeight;
         bar.hidden = above || below;
         if (bar.hidden) return;
-        bar.style.transform = `translate(${x}px, ${y}px)`;
+        // `translate`, not `transform`: the blink animates `scale`, which must act on the bar itself and then be moved
+        // (a transform is applied inside the scale, so the bar would shrink towards the field's corner instead)
+        bar.style.translate = `${x}px ${y}px`;
         bar.style.height = `${height + 2 * OVERSHOOT}px`;
         // restart the blink, so the caret stays visible while it moves, like the native one
         bar.classList.remove('blink');

@@ -137,6 +137,25 @@ try {
         await ctx.close();
     });
 
+    await check('caret: the squash blink shrinks the bar towards its own middle', async () => {
+        const { page, ctx } = await caretPage();
+        await page.keyboard.type('Ala ma kota');
+        await page.waitForTimeout(100);
+        const { full, squashed } = await page.evaluate(() => {
+            const el = document.querySelector('.thick-caret');
+            const middle = () => { const b = el.getBoundingClientRect(); return { mid: (b.top + b.bottom) / 2, height: b.height }; };
+            const [animation] = el.getAnimations();
+            animation.pause();
+            animation.currentTime = 0;
+            const full = middle();
+            animation.currentTime = 870;
+            return { full, squashed: middle() };
+        });
+        assert.ok(squashed.height < full.height / 4, 'the bar shrinks');
+        assert.ok(Math.abs(squashed.mid - full.mid) <= 1, `middle moved from ${full.mid} to ${squashed.mid}`);
+        await ctx.close();
+    });
+
     await check('caret: triangles at both ends point at the bar, in the caret colour', async () => {
         const { page, ctx } = await caretPage();
         await page.keyboard.type('Ala ma kota');
