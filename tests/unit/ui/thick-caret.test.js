@@ -68,6 +68,32 @@ describe('thick caret', () => {
         expect(measured).toEqual([4, 0, 1]);
     });
 
+    it('scrolls the field in steps of three lines when the drawn place runs off the bottom, and only then', () => {
+        const field = $('output');
+        let top = 0;
+        Range.prototype.getClientRects = () => [{ left: 0, top, height: 20 }];
+        const drawn = new ThickCaret(field, { drawAt: () => 0 });
+        field.focus();
+        drawn.update();
+        expect(field.scrollTop).toBe(0);
+
+        top = 200; // 20px past the bottom edge of the 200px field
+        drawn.update();
+        expect(field.scrollTop).toBe(60);
+
+        top = 230; // still visible at scrollTop 60
+        drawn.update();
+        expect(field.scrollTop).toBe(60);
+    });
+
+    it('does not scroll the field for the ordinary caret', () => {
+        const field = $('output');
+        Range.prototype.getClientRects = () => [{ left: 0, top: 300, height: 20 }];
+        field.focus();
+        caret.update();
+        expect(field.scrollTop).toBe(0);
+    });
+
     it('keeps its copy of the text in step with edits anywhere in the field', () => {
         $('output').focus();
         for (const text of ['Ala ma kota', 'Ala ma psa i kota', 'ma psa i kota', 'ma psa', '', 'abc\n\n\ndef']) {

@@ -10,11 +10,14 @@
  * comes back; it also comes back for good if a measurement ever fails, so the field never loses its caret.
  *
  * `drawAt` may name another place to draw the bar: during dictation the field's caret stays before the words
- * still being recognized (see SpeechSpan.apply), yet the user expects it at the end of what is on screen.
+ * still being recognized (see SpeechSpan.apply), yet the user expects it at the end of what is on screen;
+ * the field is then scrolled to keep that place visible.
  */
 export const MAX_LENGTH = 20000;
 /** How far the bar sticks out above and below the line, in px, to stand out from the letters. */
 const OVERSHOOT = 3;
+/** How many lines the field scrolls at once when dictated text reaches its bottom edge. */
+const SCROLL_LINES = 3;
 
 const COPIED_STYLES = [
     'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant', 'fontStretch',
@@ -83,8 +86,10 @@ export class ThickCaret {
             bar.hidden = true;
             return;
         }
-        const position = Math.min(this.drawAt() ?? el.selectionStart, el.value.length);
+        const drawn = this.drawAt();
+        const position = Math.min(drawn ?? el.selectionStart, el.value.length);
         const { left, top, height } = this.#measure(position);
+        if (drawn !== null) this.#scrollInto(top, height);
         // whole pixels, so the 3px bar is the same on both sides of the letter boundary
         const x = Math.round(el.offsetLeft + el.clientLeft + left - el.scrollLeft);
         const y = el.offsetTop + el.clientTop + top - el.scrollTop - OVERSHOOT;
@@ -101,6 +106,22 @@ export class ThickCaret {
         bar.classList.remove('blink');
         void bar.offsetWidth;
         bar.classList.add('blink');
+    }
+
+    /**
+     * The field only scrolls to its own caret, which stays before the words being recognized, so the drawn bar
+     * would run off the bottom while dictating. Scrolls by whole steps of SCROLL_LINES lines instead of one line per word.
+     */
+    #scrollInto(top, height) {
+        const { el } = this;
+        const padding = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+        const overflow = top + height - (el.scrollTop + el.clientHeight - padding);
+        if (overflow > 0) {
+            const step = SCROLL_LINES * height;
+            el.scrollTop += Math.ceil(overflow / step) * step;
+        } else if (top < el.scrollTop) {
+            el.scrollTop = top;
+        }
     }
 
     /** Caret position inside the field's padding box, without scrolling. */
