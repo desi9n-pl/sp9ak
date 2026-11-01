@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
     extKey: 'sp9ak-ext-key',
     sessions: 'sp9ak-sessions',
     sounds: 'sp9ak-sounds',
+    caretBlink: 'sp9ak-caret-blink',
 };
 
 export const DEFAULT_THEME = 'sepia';

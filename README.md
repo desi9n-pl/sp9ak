@@ -353,7 +353,7 @@ i zdejmuje to przypięcie. Pasek korzysta z `wmctrl`; gdy go brak albo na Waylan
 
 Chrome rysuje karetkę w polu tekstowym o szerokości 1 px i CSS nie pozwala jej pogrubić, więc w polu „Oryginał”
 łatwo ją zgubić. Aplikacja ukrywa karetkę przeglądarki i rysuje własną, szerszą i wyższą od linii (3 px, w kolorze komplementarnym do tekstu, z bardzo wyblakłymi krawędziami),
-z trójkącikami na górze i na dole, jak w pakietach biurowych. Miga: przez 3/4 czasu ma pełną wysokość, a na chwilę zwęża się do środka, znika przy zaznaczeniu tekstu
+z trójkącikami na górze i na dole, jak w pakietach biurowych. Domyślnie miga tak: przez 3/4 czasu ma pełną wysokość, a na chwilę zwęża się do środka (w **Motyw i ustawienia** → **Kursor** można wrócić do zwykłego gaśnięcia), znika przy zaznaczeniu tekstu
 i gdy pole traci fokus (`web/js/ui/thick-caret.js`).
 
 Podczas dyktowania karetka stoi na końcu słów, które Chrome jeszcze rozpoznaje. Przy tekście dłuższym niż

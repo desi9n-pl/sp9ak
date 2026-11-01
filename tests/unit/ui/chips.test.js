@@ -8,6 +8,7 @@ import { CorrectedPane } from '../../../web/js/ui/corrected-pane.js';
 import { Editor } from '../../../web/js/ui/editor.js';
 import { HistoryView } from '../../../web/js/ui/history-view.js';
 import { SoundToggle } from '../../../web/js/ui/sound-toggle.js';
+import { CaretStyleToggle } from '../../../web/js/ui/caret-style-toggle.js';
 import { ThemePicker } from '../../../web/js/ui/theme-picker.js';
 import { Emitter } from '../../../web/js/core/emitter.js';
 
@@ -101,5 +102,20 @@ describe('views', () => {
         new HistoryView({ history, onSelect: vi.fn(), sound }).render();
         click(document.querySelector('.sess-del'));
         expect(cues()).toEqual(['remove']);
+    });
+});
+
+describe('CaretStyleToggle', () => {
+    it('squashes by default and remembers going back to plain blinking', () => {
+        new CaretStyleToggle({ storage });
+        expect($('caretSquashToggle').checked).toBe(true);
+        expect(document.documentElement.dataset.caret).toBe('squash');
+
+        $('caretSquashToggle').click();
+        expect(document.documentElement.dataset.caret).toBe('blink');
+        expect(storage.get('sp9ak-caret-blink')).toBe('blink');
+
+        new CaretStyleToggle({ storage });
+        expect($('caretSquashToggle').checked).toBe(false);
     });
 });
