@@ -13,6 +13,8 @@
  * still being recognized (see SpeechSpan.apply), yet the user expects it at the end of what is on screen.
  */
 export const MAX_LENGTH = 20000;
+/** How far the bar sticks out above and below the line, in px, to stand out from the letters. */
+const OVERSHOOT = 3;
 
 const COPIED_STYLES = [
     'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant', 'fontStretch',
@@ -85,14 +87,14 @@ export class ThickCaret {
         const { left, top, height } = this.#measure(position);
         // whole pixels, so the 3px bar is the same on both sides of the letter boundary
         const x = Math.round(el.offsetLeft + el.clientLeft + left - el.scrollLeft);
-        const y = el.offsetTop + el.clientTop + top - el.scrollTop;
+        const y = el.offsetTop + el.clientTop + top - el.scrollTop - OVERSHOOT;
         // scrolled out of the visible part of the field
         const above = y + height < el.offsetTop + el.clientTop;
         const below = y >= el.offsetTop + el.clientTop + el.clientHeight;
         bar.hidden = above || below;
         if (bar.hidden) return;
         bar.style.transform = `translate(${x}px, ${y}px)`;
-        bar.style.height = `${height}px`;
+        bar.style.height = `${height + 2 * OVERSHOOT}px`;
         // restart the blink, so the caret stays visible while it moves, like the native one
         bar.classList.remove('blink');
         void bar.offsetWidth;
