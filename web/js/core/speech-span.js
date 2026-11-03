@@ -16,16 +16,22 @@ export class SpeechSpan {
         this.interim = '';
     }
 
-    /** Returns the field value with the span replaced, and where the caret belongs. */
+    /**
+     * Returns the field value with the span replaced, and where the caret belongs.
+     * Chrome starts later phrases with a space, so doubled spaces are collapsed. The final text is kept
+     * collapsed too: the caret is measured by it, and a longer copy would push the caret into the
+     * unfinished phrase, where a typed key splits it and it then gets written twice.
+     */
     apply(currentValue, final, interim) {
         const end = Math.min(this.start + this.length, currentValue.length);
-        const speech = (final + interim).replace(/ {2,}/g, ' ');
+        const said = collapseSpaces(final);
+        const speech = collapseSpaces(said + interim);
         this.length = speech.length;
-        this.final = final;
+        this.final = said;
         this.interim = interim;
         return {
             value: currentValue.slice(0, this.start) + speech + currentValue.slice(end),
-            caret: this.start + final.length,
+            caret: this.start + said.length,
         };
     }
 
@@ -36,6 +42,11 @@ export class SpeechSpan {
         this.interim = '';
         return true;
     }
+}
+
+/** Text as the field shows it: runs of spaces become one. */
+export function collapseSpaces(text) {
+    return text.replace(/ {2,}/g, ' ');
 }
 
 /**

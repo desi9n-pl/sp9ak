@@ -33,6 +33,12 @@ describe('SpeechSpan.apply', () => {
         expect(spanAt(0).apply('', 'a  b', '').value).toBe('a b');
     });
 
+    it('measures the caret by the collapsed final text, so it stays before the unfinished phrase', () => {
+        const span = spanAt(0);
+        expect(span.apply('', 'raz  dwa  trzy ', ' cztery')).toEqual({ value: 'raz dwa trzy cztery', caret: 13 });
+        expect(span.final).toBe('raz dwa trzy ');
+    });
+
     it('does not read past the end of a field that got shorter', () => {
         const span = spanAt(0);
         span.length = 100;

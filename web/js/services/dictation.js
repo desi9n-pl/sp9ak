@@ -1,5 +1,5 @@
 import { Emitter } from '../core/emitter.js';
-import { SpeechSpan, resolveStartPosition } from '../core/speech-span.js';
+import { SpeechSpan, collapseSpaces, resolveStartPosition } from '../core/speech-span.js';
 import { nextRetryDelay } from '../core/retry.js';
 import { DEFAULT_LANGUAGE } from '../config.js';
 
@@ -257,8 +257,8 @@ export class Dictation extends Emitter {
      */
     #dropInterim(caret) {
         const { start } = this.span;
-        // The field holds the phrase with doubled spaces collapsed (see SpeechSpan.apply), so match it trimmed.
-        const interim = this.span.interim.trim();
+        // The field holds the phrase with doubled spaces collapsed (see SpeechSpan.apply), so match it that way.
+        const interim = collapseSpaces(this.span.interim).trim();
         if (!interim) return caret;
         const value = this.#editor.value;
         const at = value.indexOf(interim, start);

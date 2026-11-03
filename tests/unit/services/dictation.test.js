@@ -201,6 +201,28 @@ describe('writing speech into the field', () => {
         expect(editor.value.match(/pierwsze/g)).toHaveLength(1);
     });
 
+    it('keeps the caret before the unfinished phrase after phrases Chrome gave a leading space', () => {
+        dictation.start();
+        recognition.say('raz');
+        recognition.say(' dwa');
+        recognition.say(' trzy');
+        recognition.say(' cztery', false);
+        expect(editor.value).toBe('raz dwa trzy cztery');
+        expect(editor.caret).toBe('raz dwa trzy '.length);
+    });
+
+    it('writes the unfinished phrase once when any key is typed after several phrases', () => {
+        dictation.start();
+        recognition.say('raz');
+        recognition.say(' dwa');
+        recognition.say(' trzy');
+        recognition.say(' cztery pięć', false);
+        editor.type('x');
+        recognition.say(' cztery pięć');
+        expect(editor.value.match(/cztery/g)).toHaveLength(1);
+        expect(editor.value.match(/pięć/g)).toHaveLength(1);
+    });
+
     it('keeps the final text when Enter comes with no unfinished phrase', () => {
         dictation.start();
         recognition.say('raz');
