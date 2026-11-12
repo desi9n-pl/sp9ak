@@ -286,6 +286,17 @@ describe('CorrectedPane', () => {
             expect(pane.value).toBe('ręcznie zmienione');
         });
 
+        it('sync renders the whole editor once, without repeating what a scheduled rendering already showed', () => {
+            pane.show();
+            editor.setText('jedno dwa');
+            vi.advanceTimersByTime(3000);
+            editor.setText('jedno dwa trzy');
+            pane.sync();
+            expect(pane.value).toBe('[jedno dwa trzy] ');
+            vi.advanceTimersByTime(3000);
+            expect(pane.value).toBe('[jedno dwa trzy] ');
+        });
+
         it('flush without a pending edit does nothing', () => {
             pane.show();
             pane.append('tekst ');

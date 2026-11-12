@@ -135,7 +135,7 @@ dictation.on('stopped', () => {
     dots.classList.remove('show');
 });
 dictation.on('finished', ({ text }) => {
-    if (text.trim()) corrected.append(`${punctuation.apply(text, dictation.language).trimEnd()} `);
+    if (text.trim()) corrected.sync();
     corrected.show();
     const full = corrected.value.trim() || editor.value.trim();
     if (full.length > MIN_AUTOSAVE_LENGTH) history.add(full);

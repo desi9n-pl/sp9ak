@@ -12,6 +12,7 @@ export class CorrectedPane {
     #timer = null;
     #loaderTimer = null;
     #pending = null;
+    #follow = null;
 
     constructor({ toast }) {
         this.section = byId('correctedSection');
@@ -49,6 +50,7 @@ export class CorrectedPane {
      * cannot postpone it. `render(text)` produces the new content; a dots loader shows meanwhile.
      */
     followEditor(editor, render) {
+        this.#follow = { editor, render };
         editor.on('change', () => {
             this.#pending = () => this.#refresh(editor, render);
             if (this.#timer) return;
@@ -65,6 +67,18 @@ export class CorrectedPane {
         const refresh = this.#pending;
         this.#pending = null;
         refresh?.();
+    }
+
+    /**
+     * Renders the whole editor now. Appending a finished dictation instead would repeat the part
+     * a scheduled rendering had already picked up while the phrases were still arriving.
+     */
+    sync() {
+        if (!this.#follow) return;
+        this.show();
+        this.#lastSource = null;
+        this.flush();
+        this.#refresh(this.#follow.editor, this.#follow.render);
     }
 
     #startLoader() {
