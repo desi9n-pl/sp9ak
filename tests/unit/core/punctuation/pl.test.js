@@ -173,3 +173,12 @@ describe('semicolons, dashes and lists', () => {
         expect(punctuate('lubię takie jak jabłka, gruszki, śliwki i wiśnie')).not.toContain(',,');
     });
 });
+
+describe('web addresses', () => {
+    it('are left exactly as dictated', () => {
+        expect(punctuate('zapraszam\n\nhttps://desi9n.pl\n\nz tego co widzę')).toContain('\nhttps://desi9n.pl\n');
+        expect(punctuate('https://desi9n.pl/Kontakt?a=1 to jest nasz adres')).toMatch(/^https:\/\/desi9n\.pl\/Kontakt\?a=1 /);
+        expect(punctuate('napisz na jan@firma.pl albo zadzwoń')).toContain('jan@firma.pl');
+        expect(punctuate('wejdź na www.desi9n.pl.')).toContain('www.desi9n.pl.');
+    });
+});

@@ -127,3 +127,16 @@ export function closeSentence(text, questionStart) {
     if (questionStart.test(text.split(/[.!?]\s+/).pop())) return `${text}?`;
     return /[.!?]/.test(text) ? `${text}.` : text;
 }
+
+// web addresses and e-mails; trailing sentence punctuation is not part of them
+const ADDRESS = /(?:\b(?:https?:\/\/|www\.)|[\w.+-]+@)[^\s]*[^\s.,;:!?)\]"']/giu;
+
+/**
+ * Swaps every address for a placeholder (private-use characters, which no rule touches) so that
+ * the passes cannot capitalize, split or add commas inside it. `restore` puts the originals back.
+ */
+export function protectAddresses(text) {
+    const found = [];
+    const protectedText = text.replace(ADDRESS, address => `\uE000${found.push(address) - 1}\uE001`);
+    return { text: protectedText, restore: t => t.replace(/\uE000(\d+)\uE001/g, (_, i) => found[i]) };
+}
